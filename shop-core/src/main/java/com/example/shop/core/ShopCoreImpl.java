@@ -69,6 +69,17 @@ public class ShopCoreImpl extends AbstractShopCore {
                     throw new Exception(String.format("Transaction error : (Expected %d : result %d)", -movement.getQuantity(), result ));
                 }
             }
+        } else if( movement.getQuantity() > 0 ) {
+            int availableShoes = this.databaseAdapter.countShoes( new FilterEntity(null, null));
+            int expectedResult = availableShoes + movement.getQuantity();
+            if(expectedResult > MX_CAPACITY){
+                throw new Exception(String.format("The quantity reaches the capacity limit of the shop : (stock %d : Requested %d)", availableShoes, -movement.getQuantity() ));
+            } else {
+                result = this.databaseAdapter.stock(movement);
+                if (result != movement.getQuantity()) {
+                    throw new Exception(String.format("Transaction error : (Expected %d : result %d)", -movement.getQuantity(), result));
+                }
+            }
         }
         return result;
     }
