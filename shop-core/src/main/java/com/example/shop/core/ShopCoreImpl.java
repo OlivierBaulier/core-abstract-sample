@@ -1,7 +1,7 @@
 package com.example.shop.core;
 
+import com.example.demo.core.AbstractShopCore;
 import com.example.demo.core.Implementation;
-import com.example.shop.core.entities.FilterEntity;
 import com.example.demo.dto.in.ShoeFilter;
 import com.example.demo.dto.in.StockMovement;
 import com.example.demo.dto.out.AvailableShoe;
@@ -17,30 +17,38 @@ import java.util.List;
 @Configuration
 @ComponentScan
 @Implementation(version = 3)
-public class ShopCoreImpl  {
+public class ShopCoreImpl extends AbstractShopCore {
 
     int MX_CAPACITY = 30;
     @Autowired
     private DatabaseAdapter databaseAdapter;
 
-
+    @Override
     public Shoes search(ShoeFilter filter) {
         List<Shoe> shoes = this.databaseAdapter.getCatalog(filter);
         return  Shoes.builder().shoes(shoes).build();
     }
 
 
-
+    @Override
     public Stock getStock() {
         List<AvailableShoe> stock = this.databaseAdapter.getStock();
-        Stock.State state = Stock.State.EMPTY;
+        int totalCount = stock.stream().map(AvailableShoe::getQuantity).reduce(0, Integer::sum);
+        Stock.State state;
+        if (totalCount <= 0) {
+            state = Stock.State.EMPTY;
+        } else if (totalCount >= this.MX_CAPACITY) {
+            state = Stock.State.FULL;
+        } else {
+            state = Stock.State.SOME;
+        }
         return Stock.builder().state(state).shoes(stock).build();
     }
 
 
+    @Override
     public int stockUpdate(StockMovement[] movements) throws Exception {
         int result = 0;
-
         return result;
     }
 
