@@ -1,0 +1,52 @@
+package com.example.shop.core;
+
+import com.example.demo.core.Implementation;
+import com.example.shop.core.entities.FilterEntity;
+import com.example.demo.dto.in.ShoeFilter;
+import com.example.demo.dto.in.StockMovement;
+import com.example.demo.dto.out.AvailableShoe;
+import com.example.demo.dto.out.Shoe;
+import com.example.demo.dto.out.Shoes;
+import com.example.demo.dto.out.Stock;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
+
+@Configuration
+@ComponentScan
+@Implementation(version = 3)
+public class ShopCoreImpl  {
+
+    int MX_CAPACITY = 30;
+    @Autowired
+    private DatabaseAdapter databaseAdapter;
+
+
+    public Shoes search(ShoeFilter filter) {
+        List<Shoe> shoes = this.databaseAdapter.getCatalog(filter);
+        return  Shoes.builder().shoes(shoes).build();
+    }
+
+
+
+    public Stock getStock() {
+        List<AvailableShoe> stock = this.databaseAdapter.getStock();
+        Stock.State state = Stock.State.EMPTY;
+        return Stock.builder().state(state).shoes(stock).build();
+    }
+
+
+    public int stockUpdate(StockMovement[] movements) throws Exception {
+        int result = 0;
+
+        return result;
+    }
+
+    int stockUpdate(StockMovement movement) throws Exception {
+        int result = 0;
+        return result;
+    }
+
+}
