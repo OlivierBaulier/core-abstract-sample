@@ -8,6 +8,7 @@ import com.example.demo.dto.out.AvailableShoe;
 import com.example.demo.dto.out.Shoe;
 import com.example.demo.dto.out.Shoes;
 import com.example.demo.dto.out.Stock;
+import com.example.shop.core.entities.FilterEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -49,11 +50,26 @@ public class ShopCoreImpl extends AbstractShopCore {
     @Override
     public int stockUpdate(StockMovement[] movements) throws Exception {
         int result = 0;
+        for(StockMovement mvnt : movements){
+            result += stockUpdate(mvnt);
+        }
         return result;
     }
 
     int stockUpdate(StockMovement movement) throws Exception {
         int result = 0;
+        if( movement.getQuantity() < 0 ) {
+            int availableShoes = this.databaseAdapter.countShoes( new FilterEntity( movement.getColor(), movement.getSize()));
+            int expectedResult = availableShoes +  movement.getQuantity();
+            if( expectedResult < 0 ){
+                throw new Exception(String.format("Not enough shoes : (stock %d : Requested %d)", availableShoes, -movement.getQuantity() ));
+            }else{
+                result = this.databaseAdapter.destock(movement);
+                if( result !=  movement.getQuantity()) {
+                    throw new Exception(String.format("Transaction error : (Expected %d : result %d)", -movement.getQuantity(), result ));
+                }
+            }
+        }
         return result;
     }
 
