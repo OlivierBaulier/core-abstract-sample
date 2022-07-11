@@ -12,6 +12,7 @@
     <module>core-legacy</module>
     <module>core-new</module>
     <module>shop-core</module>
+    <module>shop-database</module>
   </modules>
 
   <parent>
