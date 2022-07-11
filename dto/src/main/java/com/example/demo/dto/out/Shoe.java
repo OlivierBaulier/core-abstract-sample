@@ -11,7 +11,7 @@ import lombok.Value;
 @Value
 @Builder
 @JsonDeserialize(builder = ShoeBuilder.class)
-public class Shoe {
+public class Shoe implements Comparable<Shoe>{
 
   String     name;
   BigInteger size;
@@ -22,5 +22,16 @@ public class Shoe {
 
   }
 
-
+  @Override
+  public int compareTo(Shoe other) {
+    int result;
+    result = this.getName().compareTo(other.getName());
+    if( result == 0) {
+      result = this.getColor().compareTo(other.getColor());
+      if(result == 0){
+        result = this.getSize().compareTo(other.getSize());
+      }
+    }
+    return result;
+  }
 }
