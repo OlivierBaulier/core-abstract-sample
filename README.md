@@ -27,3 +27,40 @@ mvn test -DfailIfNoTests=false -Dtest=ShopCoreImplTest -pl shop-core -am
 ```shell
 mvn test -DfailIfNoTests=false -Dtest=ApiTest -pl controller -am
 ```
+
+
+## Choix de la persistance
+- La base de données choisie est HSQlDB en mode embarquée.
+- Le modèle choisi est basé sur une approche additive, par ajout d'enregistrement et ajout de colonnes sans destruction d'enregistrement, ceci pour préserver un historique des données, et ainsi assurer la traçabilité.
+
+
+# Première itération.
+- Pour la première itération la modélisation de l'application a été réalisé sur une seule table SHOES_STOCK.
+- Le catalogue est constitué par tous les modèles déjà enregistrés dans les stocks.
+- **accept-single-value-as-array** a été utilisé pour implémenter la mise à jour du stock en simple ou multi-lignes.
+
+## test
+
+### Test du code metier
+```shell
+mvn test -DfailIfNoTests=false -Dtest=ShopCoreImplTest -pl shop-core -am
+```
+
+### Test de l'API
+```shell
+mvn test -DfailIfNoTests=false -Dtest=ApiTest -pl controller -am
+```
+
+### Manuel avec CURL
+
+
+| Test            | Command  |
+| ------------------ | --------------------------------------------------------- |
+| Start backend | ```java -jar controller/target/controller-1.0.jar``` |
+| search V1 | ```curl -X GET "http://localhost:8080/shoes/search" -H "version: 1" ``` |
+| search V2 | ```curl -X GET "http://localhost:8080/shoes/search" -H "version: 2" ``` |
+| search V3 | ```curl -X GET "http://localhost:8080/shoes/search" -H "version: 3" ``` |
+| get stock | ```curl -X GET "http://localhost:8080/shoes/stock" -H "version: 3" ``` |
+| update stock single line | ```curl -X PATCH "http://localhost:8080/shoes/stock" -H "version: 3" -H "Content-Type: application/json" -d '{ "size": 40, "color": "BLACK", "quantity": -1 }'``` |
+| update stock multi-lines | ```curl -X PATCH "http://localhost:8080/shoes/stock" -H "version: 3" -H "Content-Type: application/json" -d '[{ "size": 40, "color": "BLACK", "quantity": -1 },{ "size": 39, "color": "BLUE", "quantity": -2 }]'``` |
+| get stock  | ```curl -X GET "http://localhost:8080/shoes/stock" -H "version: 3"``` |
