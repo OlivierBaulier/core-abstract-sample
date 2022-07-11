@@ -45,6 +45,11 @@
     <dependency>
       <groupId>com.example</groupId>
       <artifactId>shop-core</artifactId>
+      <version>${parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.example</groupId>
+      <artifactId>shop-database</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
   </dependencies>
