@@ -16,14 +16,18 @@ import org.springframework.stereotype.Component;
 
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 
 @Component
-public class StockGateway implements DatabaseAdapter {
+public class DatabaseGateway implements DatabaseAdapter {
 
     private static final String FILTERED_AVAILABLE_SQL = "SELECT color, size, count(stock_id) AS quantity FROM SHOES_STOCK WHERE outputDate IS  NULL AND ( :color IS  NULL OR color = :color ) AND (:size IS  NULL OR size =:size ) GROUP BY color, size";
     private static final String CATALOG_SQL = "SELECT DISTINCT 'Shop shoe' as name, color, size FROM SHOES_STOCK  WHERE ( :color IS  NULL OR color = :color ) AND (:size IS  NULL OR size =:size )";
     private static final String AVAILABLE_SQL = "SELECT color, size, count(stock_id) AS quantity FROM SHOES_STOCK WHERE outputDate IS NULL GROUP BY color, size";
+    private static final String INSERT_SQL = "INSERT INTO SHOES_STOCK (color, size) VALUES(:color, :size)";
+    private static final String FILTERED_COUNT_SQL = "SELECT count(stock_id) AS quantity FROM SHOES_STOCK WHERE outputDate IS  NULL AND ( :color IS  NULL OR color = :color ) AND (:size IS  NULL OR size =:size )";
+    private static final String DESTOCK_SQL = "UPDATE SHOES_STOCK set outputDate= NOW() WHERE outputDate IS NULL AND color = :color AND SIZE = :size LIMIT :quantity";
 
     @Autowired
     @Qualifier("myJdbcTemplate")
@@ -61,18 +65,31 @@ public class StockGateway implements DatabaseAdapter {
 
     @Override
     public int countShoes(FilterEntity filter) {
-        return 0;
+        SqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("color", filter.getColor())
+                .addValue("size", filter.getSize());
+        return myNamedParameterJdbcTemplate.queryForObject(FILTERED_COUNT_SQL, parameters, Integer.class).intValue();
     }
 
     @Override
     public int stock(StockMovement movement) {
 
-        return 0;
+        return IntStream.range(0, movement.getQuantity()).map(i -> {
+            SqlParameterSource parameters = new MapSqlParameterSource()
+                    .addValue("color", movement.getColor())
+                    .addValue("size", movement.getSize());
+            return myNamedParameterJdbcTemplate.update(INSERT_SQL, parameters);
+        }).sum();
 
     }
 
     @Override
     public int destock(StockMovement movement) {
-      return 0;
+        SqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("color", movement.getColor())
+                .addValue("size", movement.getSize())
+                .addValue("quantity", - movement.getQuantity());
+        return - myNamedParameterJdbcTemplate.update(DESTOCK_SQL, parameters);
     }
+
 }
