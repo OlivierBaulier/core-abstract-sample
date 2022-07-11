@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.in.ShoeFilter;
+import com.example.demo.dto.in.StockMovement;
 import com.example.demo.dto.out.AvailableShoe;
 import com.example.demo.dto.out.Shoe;
 import com.example.demo.dto.out.Shoes;
@@ -9,21 +10,21 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.client.*;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigInteger;
+import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -223,6 +224,44 @@ public class ApiTest {
     }
 
 
+    @DisplayName("Test: Add some shoes on stock")
+    @Test
+    @AfterAll
+    public void givenShoesShop_whenUpdateStock_thenSuccess()
+    {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("version", "3");
+        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+        headers.setAcceptCharset(Arrays.asList(Charset.forName("UTF-8")));
+
+        // Add 10 Boxes to stock
+        Integer boxMovement = updateSock(
+                StockMovement.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(10).build()
+        );
+        Assert.assertEquals("Check BoxMovement", Integer.valueOf(10), boxMovement);
+
+        // remove 5 boxes from stock
+        boxMovement = updateSock(
+                StockMovement.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(-15).build()
+        );
+        Assert.assertEquals("Check the number of stocked shoes", Integer.valueOf(-15), boxMovement);
+
+        // Check resultant stock
+        Stock stockResult = getStock();
+
+        //Verify expected stock
+        Stock expectedStock = Stock.builder().state(Stock.State.SOME).shoes(
+                List.of(
+                        AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(5).build(),
+                        AvailableShoe.builder().color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build()
+                )
+        ).build();
+        Assert.assertEquals("Legacy shoes",
+                expectedStock.getShoes().stream().sorted().collect(Collectors.toList()),
+                stockResult.getShoes().stream().sorted().collect(Collectors.toList()));
+    }
+
+
     private Shoes search(Version version){
         return search(version , null);
     }
@@ -288,4 +327,30 @@ public class ApiTest {
 
         return result.getBody();
     }
+
+
+    Integer updateSock(StockMovement ...stockMvts){
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("version", Version.SHOP.tag);
+        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+        headers.setAcceptCharset(Arrays.asList(Charset.forName("UTF-8")));
+
+        HttpEntity<StockMovement[]> request = new HttpEntity<StockMovement[]>(stockMvts, headers);
+
+
+        //       RestTemplate restTemplate = new RestTemplate();
+        // make an HTTP GET request with headers
+        ResponseEntity<Integer> result = restTemplate.exchange(
+                baseUrl+"stock",
+                HttpMethod.PATCH,
+                request,
+                Integer.class
+        );
+
+        //Verify http result
+        Assert.assertEquals("Http code",200,result.getStatusCode().value());
+
+        return result.getBody();
+    }
+
 }
