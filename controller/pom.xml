@@ -28,6 +28,11 @@
       <version>${parent.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
@@ -36,6 +41,11 @@
       <groupId>com.example</groupId>
       <artifactId>core-new</artifactId>
       <version>${parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.example</groupId>
+      <artifactId>shop-core</artifactId>
+      <version>${project.parent.version}</version>
     </dependency>
   </dependencies>
 
