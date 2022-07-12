@@ -22,9 +22,9 @@ import java.util.stream.IntStream;
 @Component
 public class DatabaseGateway implements DatabaseAdapter {
 
-    private static final String FILTERED_AVAILABLE_SQL = "SELECT color, size, count(stock_id) AS quantity FROM SHOES_STOCK WHERE outputDate IS  NULL AND ( :color IS  NULL OR color = :color ) AND (:size IS  NULL OR size =:size ) GROUP BY color, size";
+    private static final String FILTERED_STOCK_SQL = "SELECT color, size, count(stock_id) AS quantity FROM SHOES_STOCK WHERE  ( :color IS  NULL OR color = :color ) AND (:size IS  NULL OR size =:size ) GROUP BY color, size";
     private static final String CATALOG_SQL = "SELECT DISTINCT 'Shop shoe' as name, color, size FROM SHOES_STOCK  WHERE ( :color IS  NULL OR color = :color ) AND (:size IS  NULL OR size =:size )";
-    private static final String AVAILABLE_SQL = "SELECT color, size, count(stock_id) AS quantity FROM SHOES_STOCK WHERE outputDate IS NULL GROUP BY color, size";
+    private static final String STOCK_SQL = "SELECT color, size, count(case outputDate when IS NULL then 1 else null end ) AS quantity FROM SHOES_STOCK  GROUP BY color, size";
     private static final String INSERT_SQL = "INSERT INTO SHOES_STOCK (color, size) VALUES(:color, :size)";
     private static final String FILTERED_COUNT_SQL = "SELECT count(stock_id) AS quantity FROM SHOES_STOCK WHERE outputDate IS  NULL AND ( :color IS  NULL OR color = :color ) AND (:size IS  NULL OR size =:size )";
     private static final String DESTOCK_SQL = "UPDATE SHOES_STOCK set outputDate= NOW() WHERE outputDate IS NULL AND color = :color AND SIZE = :size LIMIT :quantity";
@@ -39,7 +39,7 @@ public class DatabaseGateway implements DatabaseAdapter {
 
 
     public List<AvailableShoe> getAllShoes() {
-        return myJdbcTemplate.query(AVAILABLE_SQL, new AvailableShoeMapper() );
+        return myJdbcTemplate.query(STOCK_SQL, new AvailableShoeMapper() );
     }
 
     @Override
@@ -52,7 +52,7 @@ public class DatabaseGateway implements DatabaseAdapter {
 
     @Override
     public List<AvailableShoe> getStock() {
-        return myJdbcTemplate.query(AVAILABLE_SQL, new AvailableShoeMapper() );
+        return myJdbcTemplate.query(STOCK_SQL, new AvailableShoeMapper() );
     }
 
     @Override
@@ -60,7 +60,7 @@ public class DatabaseGateway implements DatabaseAdapter {
         SqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("color", filter.getColor())
                 .addValue("size", filter.getSize());
-        return myNamedParameterJdbcTemplate.query(FILTERED_AVAILABLE_SQL, parameters,  new AvailableShoeMapper());
+        return myNamedParameterJdbcTemplate.query(FILTERED_STOCK_SQL, parameters,  new AvailableShoeMapper());
     }
 
     @Override

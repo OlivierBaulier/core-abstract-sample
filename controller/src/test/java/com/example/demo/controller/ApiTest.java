@@ -47,6 +47,20 @@ public class ApiTest {
         }
     }
 
+    private Stock initialStock = Stock.builder().state(Stock.State.SOME).shoes(
+            List.of(
+                    AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(10).build(),
+                    AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(41L)).quantity(0).build(),
+                    AvailableShoe.builder().color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build()
+            )).build();
+
+    private Shoes initialCatalog = Shoes.builder().shoes(
+            List.of(
+            Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLACK).size(BigInteger.valueOf(40L)).build(),
+                        Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLACK).size(BigInteger.valueOf(41L)).build(),
+                        Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLUE).size(BigInteger.valueOf(39L)).build()
+                )
+                        ).build();
     private RestTemplate restTemplate;
 
     private  Shoes newCoreDefaultShoes = Shoes.builder()
@@ -180,12 +194,14 @@ public class ApiTest {
     {
         Shoes shoes = this.search(Version.SHOP);
 
-        Shoes expectedShoes = Shoes.builder().shoes(
+        Shoes expectedShoes = this.initialCatalog;
+/*                Shoes.builder().shoes(
                 List.of(
                         Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLACK).size(BigInteger.valueOf(40L)).build(),
+                        Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLACK).size(BigInteger.valueOf(41L)).build(),
                         Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLUE).size(BigInteger.valueOf(39L)).build()
                 )
-        ).build();
+        ).build(); */
         Assert.assertEquals("Legacy shoes", expectedShoes.getShoes().stream().sorted().collect(Collectors.toList()),
                 shoes.getShoes().stream().sorted().collect(Collectors.toList()));
     }
@@ -211,13 +227,8 @@ public class ApiTest {
     {
         Stock result = getStock();
 
-        //Verify expected stock
-        Stock expectedStock = Stock.builder().state(Stock.State.SOME).shoes(
-                List.of(
-                        AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(10).build(),
-                        AvailableShoe.builder().color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build()
-                )
-        ).build();
+        Stock expectedStock = this.initialStock;
+
         Assert.assertEquals("Legacy shoes",
                 expectedStock.getShoes().stream().sorted().collect(Collectors.toList()),
                 result.getShoes().stream().sorted().collect(Collectors.toList()));
@@ -253,9 +264,10 @@ public class ApiTest {
         Stock expectedStock = Stock.builder().state(Stock.State.SOME).shoes(
                 List.of(
                         AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(5).build(),
+                        AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(41L)).quantity(0).build(),
                         AvailableShoe.builder().color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build()
-                )
-        ).build();
+                )).build();;
+
         Assert.assertEquals("Legacy shoes",
                 expectedStock.getShoes().stream().sorted().collect(Collectors.toList()),
                 stockResult.getShoes().stream().sorted().collect(Collectors.toList()));

@@ -284,6 +284,7 @@ class ShopCoreImplTest {
     Stock initialStock = Stock.builder().state(Stock.State.SOME).shoes(
             List.of(
                     AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(10).build(),
+                    AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(41L)).quantity(0).build(),
                     AvailableShoe.builder().color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build()
             )
     ).build();
