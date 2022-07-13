@@ -7,7 +7,7 @@ import lombok.Setter;
 import java.math.BigInteger;
 
 @Builder
-public class FilterEntity {
+public class FilterEntity implements Comparable<FilterEntity>{
 
     @Getter  @Setter
     private String Color;
@@ -18,5 +18,14 @@ public class FilterEntity {
     public FilterEntity(String color, BigInteger size) {
         Color = color;
         this.size = size;
+    }
+
+    @Override
+    public int compareTo(FilterEntity other) {
+        int result = this.getColor().compareTo(other.getColor());
+        if(result == 0){
+            result = this.getSize().compareTo(other.getSize());
+        }
+        return result;
     }
 }

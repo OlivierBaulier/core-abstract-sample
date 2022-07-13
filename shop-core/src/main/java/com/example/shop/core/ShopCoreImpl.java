@@ -9,10 +9,14 @@ import com.example.demo.dto.out.Shoe;
 import com.example.demo.dto.out.Shoes;
 import com.example.demo.dto.out.Stock;
 import com.example.shop.core.entities.FilterEntity;
+import org.modelmapper.internal.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Configuration
@@ -47,16 +51,59 @@ public class ShopCoreImpl extends AbstractShopCore {
     }
 
 
-    @Override
-    public int stockUpdate(StockMovement[] movements) throws Exception {
+    /** Manage stock update in multi line stratégie
+     * The strategy used is to start by adding movement first
+     *
+     * @param movements the movements to apply to stock
+     * @return the balance of shoes boxes after all updates
+     * @throws Exception
+     */
+    public int stockUpdateMultiLine(StockMovement[] movements) throws Exception {
         int result = 0;
-        for(StockMovement mvnt : movements){
-            result += stockUpdate(mvnt);
+        // Sort movements to have addition in first
+        List<StockMovement> insertionOrder = Arrays.asList(movements);
+        Collections.sort(insertionOrder, (a,b) -> b.compareTo(a) );
+        // performs the movements in correct order
+        for(StockMovement mvt :insertionOrder)
+        {
+            int resultMvt = 0;
+            int mvtDirection = 1;
+            if(mvt.getQuantity() > 0){
+                resultMvt = this.databaseAdapter.stock(mvt);
+            } else if (mvt.getQuantity() < 0){
+                mvtDirection = -1;
+                resultMvt =  this.databaseAdapter.destock(mvt);
+           }
+            // check the movement is done completely
+            if(resultMvt != mvt.getQuantity()){
+                throw new Exception(String.format("Transaction error : (Expected %d : result %d)", mvtDirection * mvt.getQuantity(), resultMvt));
+            }
+            result += resultMvt;
+        }
+        int newStockCount = this.databaseAdapter.countShoes( new FilterEntity(null, null));
+        // check if limit is reached
+        if(newStockCount > MX_CAPACITY){
+            throw new Exception(String.format("The quantity reaches the capacity limit of the shop : (stock %d : sum of movements  %d)", newStockCount, result ));
         }
         return result;
     }
 
-    int stockUpdate(StockMovement movement) throws Exception {
+    @Override
+    public int stockUpdate(StockMovement[] movements) throws Exception {
+        if (movements.length == 1){
+            return stockUpdateSingleLine( movements[0]);
+        }else{
+            return this.stockUpdateMultiLine(movements);
+        }
+    }
+
+    /** App
+     *
+     * @param movement
+     * @return
+     * @throws Exception
+     */
+    int stockUpdateSingleLine(StockMovement movement) throws Exception {
         int result = 0;
         if( movement.getQuantity() < 0 ) {
             int availableShoes = this.databaseAdapter.countShoes( new FilterEntity( movement.getColor(), movement.getSize()));
