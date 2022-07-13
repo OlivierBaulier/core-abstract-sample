@@ -8,6 +8,7 @@ import com.example.demo.dto.out.Shoes;
 import com.example.demo.dto.out.Stock;
 import com.example.demo.facade.ShoeFacade;
 import com.example.demo.facade.ShopFacade;
+import com.example.shop.core.entities.FilterEntity;
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -278,6 +279,42 @@ class ShopCoreImplTest {
         Assert.assertTrue(exception.getMessage().contains("The quantity reaches the capacity limit of the shop :"));
     }
 
+    @Test
+    void givenInitialStock_whenAddedAddMultiLineStockInCapacity_thenReturnSuccess() throws Exception {
+
+        // Add 11 shoes in initial Stock
+        int result  = this.updateStock(
+                this.initialStock,
+                StockMovement.builder().color("Black").size(BigInteger.valueOf(40)).quantity(-20).build(),
+                StockMovement.builder().color("Black").size(BigInteger.valueOf(40)).quantity(20).build(),
+                StockMovement.builder().color("Black").size(BigInteger.valueOf(40)).quantity(10).build()
+        );
+
+        // check the number of shoes boxes movements
+        Assert.assertEquals("Check exception", 50, result);
+
+    }
+
+
+
+    @Test
+    void givenInitialStock_whenAddedAddMultiLineStockOutsideCapacity_thenThrowsCapacityReached() {
+
+        // Add 11 shoes in initial Stock
+        Exception exception = assertThrows(Exception.class, () -> {
+            int stock =  this.updateStock(
+                    this.initialStock,
+                    StockMovement.builder().color("Black").size(BigInteger.valueOf(40)).quantity(-20).build(),
+                    StockMovement.builder().color("Black").size(BigInteger.valueOf(40)).quantity(20).build(),
+                    StockMovement.builder().color("Black").size(BigInteger.valueOf(40)).quantity(11).build()
+            );
+        });
+
+        // check result
+        Assert.assertEquals("Check exception", Exception.class, exception.getClass());
+        Assert.assertTrue(exception.getMessage().contains("The quantity reaches the capacity limit of the shop :"));
+    }
+
     /** Data set for test and Mock database state
      *
      */
@@ -356,6 +393,48 @@ class ShopCoreImplTest {
         return result;
     }
 
+
+    private int updateStock(Stock currentStock, StockMovement ...movements) throws Exception {
+        int expectedResult = 0;
+        int addedMvtCount = 0;
+        int removedMvtCount = 0;
+        int initialCount = currentStock.getShoes().stream()
+                .mapToInt(x -> x.getQuantity())
+                .sum();
+        for(StockMovement movement: movements){
+            // count the cumulative movement of boxes
+            expectedResult += movement.getQuantity();
+            if(movement.getQuantity() < 0){
+                // simulate corresponding movement from stock
+                removedMvtCount ++;
+                when(this.databaseAdapter.destock(movement))
+                        .thenReturn(movement.getQuantity());
+            } else {
+                // simulate corresponding movement  to stock
+                addedMvtCount ++;
+                when(this.databaseAdapter.stock(movement))
+                        .thenReturn(movement.getQuantity());
+            }
+        }
+        when(this.databaseAdapter.countShoes(any()))
+                .thenReturn(initialCount + expectedResult);
+
+        // performs all movements in single call
+        int requestResult = this.shopFacade.get(3).stockUpdate(movements);
+
+        verify(this.databaseAdapter, times(1)).countShoes(any());
+        verify(this.databaseAdapter, times(addedMvtCount)).stock(any());
+        verify(this.databaseAdapter, times(addedMvtCount)).destock(any());
+
+        // Check the number of shoes added
+        Assert.assertEquals("Check the number of boxes movement", requestResult, expectedResult);
+
+        return requestResult;
+    }
+
+
+
+
     private int AddShoes(Stock currentStock, StockMovement shoesAddition) throws Exception {
 
 
@@ -380,6 +459,7 @@ class ShopCoreImplTest {
 
         return requestResult;
     }
+
 
 
 }
