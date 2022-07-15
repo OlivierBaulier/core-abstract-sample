@@ -6,11 +6,18 @@ import com.example.demo.dto.out.Shoes;
 import com.example.demo.dto.out.Stock;
 import com.example.demo.facade.ShoeFacade;
 import com.example.demo.facade.ShopFacade;
+import com.example.shop.controller.ApiError;
+import com.example.shop.controller.ApiSubError;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
 @Controller
 @RequestMapping(path = "/shoes")
@@ -39,8 +46,7 @@ public class ShoeController {
   }
 
   @PatchMapping(path = "/stock", consumes = "application/json", produces = "application/json")
-  public ResponseEntity<Integer> patch(@RequestBody StockMovement[] stockMvms, @RequestHeader Integer version) {
-
+  public ResponseEntity<Integer> patch( @RequestBody @Valid StockMovement[] stockMvms, @RequestHeader Integer version) {
     try {
       return ResponseEntity.ok(shopFacade.get(version).stockUpdate(stockMvms));
     } catch (Exception e) {
@@ -50,4 +56,31 @@ public class ShoeController {
 
   }
 
+  @PatchMapping(path = "/stack", consumes = "application/json", produces = "application/json")
+  public ResponseEntity<Integer> patch( @RequestBody @Valid StockMovement stockMvm, @RequestHeader Integer version) throws Exception {
+
+      StockMovement[] stockMvmts = {stockMvm};
+      return ResponseEntity.ok(shopFacade.get(version).stockUpdate(stockMvmts));
+
+  }
+
+/*
+  @ExceptionHandler({ Exception.class })
+  public void handleException() {
+    //
+  }
+
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ApiError invalidArguments(MethodArgumentNotValidException exception){
+    ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST) ;
+    exception.getBindingResult().getFieldErrors().forEach( error -> apiError.addSubError(
+            error.getField(),
+            ApiSubError.builder()
+                    .code(error.getCode())
+                    .message(error.getDefaultMessage())
+                    .context(error.getRejectedValue()).build()
+    ));
+    return apiError;
+  } */
 }

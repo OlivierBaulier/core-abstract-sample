@@ -14,6 +14,19 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @NoArgsConstructor
 public class ApplicationExceptionHandler {
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ApiError invalidArguments(MethodArgumentNotValidException exception){
+        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST) ;
+        exception.getBindingResult().getFieldErrors().forEach( error -> apiError.addSubError(
+                error.getField(),
+                ApiSubError.builder()
+                        .code(error.getCode())
+                        .message(error.getDefaultMessage())
+                        .context(error.getRejectedValue()).build()
+        ));
+        return apiError;
+    }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(CapacityReachedException.class)

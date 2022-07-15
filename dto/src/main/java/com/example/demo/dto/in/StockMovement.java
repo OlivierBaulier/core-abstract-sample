@@ -1,19 +1,23 @@
 package com.example.demo.dto.in;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
-import lombok.Value;
+
 
 import java.math.BigInteger;
+import javax.validation.constraints.NotNull;
 
-@Value
+
+@Data
 @Builder
 public class StockMovement implements  Comparable<StockMovement>{
 
+    @NotNull(message = "size shouldn't be null")
     @Getter BigInteger size;
+    @NotNull(message = "color shouldn't be null")
     @Getter String color;
+    @NotNull(message = "quantity shouldn't be null")
     @Getter  int quantity;
 
     @Override
