@@ -128,7 +128,7 @@ class ShopCoreImplTest {
     }
 
     @Test
-    void givenEmptyStock_whenRequestSomeShoes_thenEnoughShoesException() {
+    void givenEmptyStock_whenRequestSomeShoes_thenThrowsInsufficientStockException() {
 
         // check the exception case
         Exception exception = assertThrows(Exception.class, () -> {
@@ -142,13 +142,13 @@ class ShopCoreImplTest {
         });
 
         // check result
-        Assert.assertEquals("Check exception", Exception.class, exception.getClass());
-        Assert.assertTrue(exception.getMessage().contains("Not enough shoes :"));
+        Assert.assertEquals("Check exception", InsufficientStockException.class, exception.getClass());
+        Assert.assertTrue(exception.getMessage().contains("Not enough stock :"));
     }
 
 
     @Test
-    void givenInitialStock_whenRequestMoreThanAvailableBoxes_thenEnoughShoesException() {
+    void givenInitialStock_whenRequestMoreThanAvailableBoxes_thenThrowsInsufficientStockException() {
 
         // check the exception case
         Exception exception = assertThrows(Exception.class, () -> {
@@ -162,8 +162,8 @@ class ShopCoreImplTest {
         });
 
         // check result
-        Assert.assertEquals("Check exception", Exception.class, exception.getClass());
-        Assert.assertTrue(exception.getMessage().contains("Not enough shoes :"));
+        Assert.assertEquals("Check exception", InsufficientStockException.class, exception.getClass());
+        Assert.assertTrue(exception.getMessage().contains("Not enough stock :"));
     }
 
 
@@ -212,12 +212,12 @@ class ShopCoreImplTest {
             );
         });
         // check result
-        Assert.assertEquals("Check exception", Exception.class, exception.getClass());
+        Assert.assertEquals("Check exception", CapacityReachedException.class, exception.getClass());
         Assert.assertTrue(exception.getMessage().contains("The quantity reaches the capacity limit of the shop :"));
     }
 
     @Test
-    void givenFullStock_whenAddSomeShoes_thenToManyShoesException() {
+    void givenFullStock_whenAddSomeShoes_thenThrowsCapacityReached() {
 
         // Add one shoes box in fullStock
         // check the corresponding exception
@@ -233,7 +233,7 @@ class ShopCoreImplTest {
         });
 
         // check result
-        Assert.assertEquals("Check exception", Exception.class, exception.getClass());
+        Assert.assertEquals("Check exception", CapacityReachedException.class, exception.getClass());
         Assert.assertTrue(exception.getMessage().contains("The quantity reaches the capacity limit of the shop :"));
     }
 
@@ -278,7 +278,7 @@ class ShopCoreImplTest {
         });
 
         // check result
-        Assert.assertEquals("Check exception", Exception.class, exception.getClass());
+        Assert.assertEquals("Check exception", CapacityReachedException.class, exception.getClass());
         Assert.assertTrue(exception.getMessage().contains("The quantity reaches the capacity limit of the shop :"));
     }
 
@@ -315,7 +315,7 @@ class ShopCoreImplTest {
         });
 
         // check result
-        Assert.assertEquals("Check exception", Exception.class, exception.getClass());
+        Assert.assertEquals("Check exception", CapacityReachedException.class, exception.getClass());
         Assert.assertTrue(exception.getMessage().contains("The quantity reaches the capacity limit of the shop :"));
     }
 

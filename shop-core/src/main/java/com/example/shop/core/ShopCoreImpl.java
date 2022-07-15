@@ -9,15 +9,11 @@ import com.example.demo.dto.out.Shoe;
 import com.example.demo.dto.out.Shoes;
 import com.example.demo.dto.out.Stock;
 import com.example.shop.core.entities.FilterEntity;
-import org.modelmapper.internal.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Configuration
 @ComponentScan
@@ -75,15 +71,38 @@ public class ShopCoreImpl extends AbstractShopCore {
                 resultMvt =  this.databaseAdapter.destock(mvt);
            }
             // check the movement is done completely
-            if(resultMvt != mvt.getQuantity()){
-                throw new Exception(String.format("Transaction error : (Expected %d : result %d)", mvtDirection * mvt.getQuantity(), resultMvt));
+            if(resultMvt != mvt.getQuantity()) {
+                if (mvtDirection < 0) {
+                    throw new InsufficientStockException("stockMovement",
+                            String.format("Not enough stock : (stock %d : Requested %d)", result, -mvt.getQuantity()),
+                            Map.ofEntries(
+                                    Map.entry("availableShoes", Integer.valueOf(resultMvt)),
+                                    Map.entry("movement", mvt)
+                            )
+                    );
+                } else {
+                    throw new CapacityReachedException("stockMovement",
+                            String.format("The quantity reaches the capacity limit of the shop : (free places %d : addition %d)", result, mvt.getQuantity()),
+                            Map.ofEntries(
+                                    Map.entry("free places", Integer.valueOf(resultMvt)),
+                                    Map.entry("movement", mvt)
+                            )
+                    );
+                }
             }
             result += resultMvt;
         }
         int newStockCount = this.databaseAdapter.countShoes( new FilterEntity(null, null));
         // check if limit is reached
         if(newStockCount > MX_CAPACITY){
-            throw new Exception(String.format("The quantity reaches the capacity limit of the shop : (stock %d : sum of movements  %d)", newStockCount, result ));
+            int freePlaces = MX_CAPACITY -(newStockCount-result);
+            throw new CapacityReachedException("stockMovements",
+                    String.format("The quantity reaches the capacity limit of the shop : (free places %d : addition %d)", freePlaces, result),
+                    Map.ofEntries(
+                            Map.entry("free places", Integer.valueOf(freePlaces)),
+                            Map.entry("movement", movements)
+                    )
+            );
         }
         return result;
     }
@@ -109,22 +128,46 @@ public class ShopCoreImpl extends AbstractShopCore {
             int availableShoes = this.databaseAdapter.countShoes( new FilterEntity( movement.getColor(), movement.getSize()));
             int expectedResult = availableShoes +  movement.getQuantity();
             if( expectedResult < 0 ){
-                throw new Exception(String.format("Not enough shoes : (stock %d : Requested %d)", availableShoes, -movement.getQuantity() ));
+                throw new InsufficientStockException("stockMovement",
+                        String.format("Not enough stock : (stock %d : Requested %d)", availableShoes, -movement.getQuantity() ),
+                        Map.ofEntries(
+                                Map.entry("availableShoes", Integer.valueOf(availableShoes)),
+                                Map.entry("movement", movement)
+                        )
+                );
             }else{
                 result = this.databaseAdapter.destock(movement);
-                if( result !=  movement.getQuantity()) {
-                    throw new Exception(String.format("Transaction error : (Expected %d : result %d)", -movement.getQuantity(), result ));
+                if( result != movement.getQuantity()) {
+                    throw new InsufficientStockException("stockMovement",
+                            String.format("Not enough stock : (stock %d : Requested %d)", result, -movement.getQuantity()),
+                            Map.ofEntries(
+                                    Map.entry("availableShoes", result),
+                                    Map.entry("movement", movement)
+                            )
+                    );
                 }
             }
         } else if( movement.getQuantity() > 0 ) {
             int availableShoes = this.databaseAdapter.countShoes( new FilterEntity(null, null));
             int expectedResult = availableShoes + movement.getQuantity();
             if(expectedResult > MX_CAPACITY){
-                throw new Exception(String.format("The quantity reaches the capacity limit of the shop : (stock %d : Requested %d)", availableShoes, -movement.getQuantity() ));
+                throw new CapacityReachedException("stockMovement",
+                        String.format("The quantity reaches the capacity limit of the shop : (free places %d : addition %d)", MX_CAPACITY-availableShoes, movement.getQuantity() ),
+                        Map.ofEntries(
+                                Map.entry("freePlaces", Integer.valueOf(MX_CAPACITY - availableShoes)),
+                                Map.entry("movement", movement)
+                        )
+                );
             } else {
                 result = this.databaseAdapter.stock(movement);
                 if (result != movement.getQuantity()) {
-                    throw new Exception(String.format("Transaction error : (Expected %d : result %d)", -movement.getQuantity(), result));
+                    throw new CapacityReachedException("stockMovement",
+                            String.format("The quantity reaches the capacity limit of the shop : (free places %d : addition %d)", result, movement.getQuantity() ),
+                            Map.ofEntries(
+                                    Map.entry("freePLaces", Integer.valueOf(result)),
+                                    Map.entry("movement", movement)
+                            )
+                    );
                 }
             }
         }
