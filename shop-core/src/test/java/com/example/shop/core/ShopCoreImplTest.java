@@ -1,13 +1,13 @@
 package com.example.shop.core;
 
 import com.example.demo.dto.in.ShoeFilter;
-import com.example.demo.dto.in.StockMovement;
-import com.example.demo.dto.out.AvailableShoe;
+import com.example.shop.dto.in.StockMovement;
+import com.example.shop.dto.out.AvailableShoe;
 import com.example.demo.dto.out.Shoe;
 import com.example.demo.dto.out.Shoes;
-import com.example.demo.dto.out.Stock;
+import com.example.shop.dto.out.Stock;
 import com.example.demo.facade.ShoeFacade;
-import com.example.demo.facade.ShopFacade;
+import com.example.shop.facade.ShopFacade;
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.*;
 @ActiveProfiles("test")
 @RunWith(SpringRunner.class)
 @ExtendWith(SpringExtension.class)
-@ComponentScan({ "com.example.demo.facade", "com.example.demo.core", "com.example.shop.core"})
+@ComponentScan({ "com.example.demo.facade", "com.example.demo.core", "com.example.shop.facade", "com.example.shop.core"})
 @ContextConfiguration(classes = TestConfig.class)
 class ShopCoreImplTest {
 

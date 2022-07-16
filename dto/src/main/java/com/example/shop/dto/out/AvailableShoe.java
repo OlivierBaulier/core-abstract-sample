@@ -1,4 +1,4 @@
-package com.example.demo.dto.out;
+package com.example.shop.dto.out;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;

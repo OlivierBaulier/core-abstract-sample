@@ -5,7 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.Properties;
 
-@SpringBootApplication(scanBasePackages = { "com.example", "com.example.shop.controller", "com.example.shop.core", "com.example.shop.core", "com.example.shop.database"})
+//@SpringBootApplication(scanBasePackages = { "com.example", "com.example.shop.controller", "com.example.shop.core", "com.example.shop.core", "com.example.shop.database"})
+@SpringBootApplication(scanBasePackages = { "com.example.shop", "com.example.demo"})
 public class MultipleCoreImplemSampleApplication {
 
   public static void main(String[] args) {

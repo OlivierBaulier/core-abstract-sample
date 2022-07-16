@@ -1,6 +1,6 @@
-package com.example.demo.facade;
+package com.example.shop.facade;
 
-import com.example.demo.core.ShopCore;
+import com.example.shop.core.ShopCore;
 import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;

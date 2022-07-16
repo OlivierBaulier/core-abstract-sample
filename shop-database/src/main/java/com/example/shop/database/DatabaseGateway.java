@@ -2,8 +2,8 @@ package com.example.shop.database;
 
 import com.example.shop.core.entities.FilterEntity;
 import com.example.demo.dto.in.ShoeFilter;
-import com.example.demo.dto.in.StockMovement;
-import com.example.demo.dto.out.AvailableShoe;
+import com.example.shop.dto.in.StockMovement;
+import com.example.shop.dto.out.AvailableShoe;
 import com.example.demo.dto.out.Shoe;
 import com.example.shop.core.DatabaseAdapter;
 import org.springframework.beans.factory.annotation.Autowired;

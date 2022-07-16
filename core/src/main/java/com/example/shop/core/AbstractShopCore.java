@@ -1,7 +1,9 @@
-package com.example.demo.core;
+package com.example.shop.core;
 
+import com.example.demo.core.Implementation;
+import com.example.demo.core.ShoeCore;
 import com.example.demo.facade.ShoeFacade;
-import com.example.demo.facade.ShopFacade;
+import com.example.shop.facade.ShopFacade;
 import lombok.val;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.beans.factory.annotation.Autowired;

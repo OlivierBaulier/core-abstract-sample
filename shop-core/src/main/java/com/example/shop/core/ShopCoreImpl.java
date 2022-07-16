@@ -1,13 +1,12 @@
 package com.example.shop.core;
 
-import com.example.demo.core.AbstractShopCore;
 import com.example.demo.core.Implementation;
 import com.example.demo.dto.in.ShoeFilter;
-import com.example.demo.dto.in.StockMovement;
-import com.example.demo.dto.out.AvailableShoe;
+import com.example.shop.dto.in.StockMovement;
+import com.example.shop.dto.out.AvailableShoe;
 import com.example.demo.dto.out.Shoe;
 import com.example.demo.dto.out.Shoes;
-import com.example.demo.dto.out.Stock;
+import com.example.shop.dto.out.Stock;
 import com.example.shop.core.entities.FilterEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;

@@ -1,6 +1,6 @@
 package com.example.shop.database;
 
-import com.example.demo.dto.out.AvailableShoe;
+import com.example.shop.dto.out.AvailableShoe;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;

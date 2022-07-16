@@ -1,7 +1,7 @@
-package com.example.demo.core;
+package com.example.shop.core;
 
-import com.example.demo.dto.in.StockMovement;
-import com.example.demo.dto.out.Stock;
+import com.example.shop.dto.in.StockMovement;
+import com.example.shop.dto.out.Stock;
 
 public interface ShopCore  {
 

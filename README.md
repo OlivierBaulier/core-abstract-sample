@@ -61,9 +61,9 @@ mvn test -DfailIfNoTests=false -Dtest=ApiTest -pl controller -am
 | search V1 | ```curl -X GET "http://localhost:8080/shoes/search" -H "version: 1" ``` |
 | search V2 | ```curl -X GET "http://localhost:8080/shoes/search" -H "version: 2" ``` |
 | search V3 | ```curl -X GET "http://localhost:8080/shoes/search" -H "version: 3" ``` |
-| get stock | ```curl -X GET "http://localhost:8080/shoes/stock" -H "version: 3" ``` |
-| update stock single line | ```curl -X PATCH "http://localhost:8080/shoes/stock" -H "version: 3" -H "Content-Type: application/json" -d '{ "size": 40, "color": "BLACK", "quantity": -1 }'``` |
-| update stock multi-lines | ```curl -X PATCH "http://localhost:8080/shoes/stock" -H "version: 3" -H "Content-Type: application/json" -d '[{ "size": 40, "color": "BLACK", "quantity": -1 },{ "size": 39, "color": "BLUE", "quantity": -2 }]'``` |
-| get stock  | ```curl -X GET "http://localhost:8080/shoes/stock" -H "version: 3"``` |
+| get stock | ```curl -X GET "http://localhost:8080/shop/stock" -H "version: 3" ``` |
+| update stock single line | ```curl -X PATCH "http://localhost:8080/shop/stock" -H "version: 3" -H "Content-Type: application/json" -d '{ "size": 40, "color": "BLACK", "quantity": -1 }'``` |
+| update stock multi-lines | ```curl -X PATCH "http://localhost:8080/shop/stock" -H "version: 3" -H "Content-Type: application/json" -d '[{ "size": 40, "color": "BLACK", "quantity": -1 },{ "size": 39, "color": "BLUE", "quantity": -2 }]'``` |
+| get stock  | ```curl -X GET "http://localhost:8080/shop/stock" -H "version: 3"``` |
 
 

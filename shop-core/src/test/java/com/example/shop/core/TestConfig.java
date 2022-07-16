@@ -6,7 +6,7 @@ import org.springframework.context.annotation.*;
 
 @Configuration
 @Profile("test")
-@ComponentScan({"com.example.demo.facade", "com.example.demo.core", "com.example.shop.core"})
+@ComponentScan({"com.example.demo.facade", "com.example.demo.core", "com.example.shop.facade", "com.example.shop.core"})
 public class TestConfig {
     @Bean(name="testDatabaseAdapter")
     @Primary

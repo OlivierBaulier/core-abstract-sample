@@ -1,4 +1,4 @@
-package com.example.shop.controller;
+package com.example.shop.dto.out;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +16,10 @@ public class ApiSubError {
     String message;
     Object context;
 
+    public ApiSubError(){}
+
     public ApiSubError(String code, String message, Object context) {
+        this();
         this.message = message;
         this.code = code;
         this.context = context;
