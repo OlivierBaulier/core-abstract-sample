@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -16,12 +17,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This class is used to manage common error from REST API or Business code
+ * This class is used to manage error in REST API
+ * It allows the business errors to be returned to REST client
  */
 @Data
-
 public class ApiError {
 
+    @Schema( example = "BAD_REQUEST")
     private HttpStatus status;
 
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)

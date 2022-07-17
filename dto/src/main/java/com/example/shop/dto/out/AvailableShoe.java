@@ -2,6 +2,7 @@ package com.example.shop.dto.out;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Value;
 
@@ -13,8 +14,11 @@ import java.math.BigInteger;
 public class AvailableShoe  implements Comparable<AvailableShoe>{
 
 
+    @Schema( example = "BLACK")
     String color;
+    @Schema(example = "40")
     BigInteger size;
+    @Schema(example = "10")
     int quantity;
 
 
