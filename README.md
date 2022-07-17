@@ -58,7 +58,7 @@ mvn test -DfailIfNoTests=false -Dtest=ApiTest -pl controller -am
 | Test            | Command  |
 | ------------------ | --------------------------------------------------------- |
 | Start backend | ```java -jar controller/target/controller-1.0.jar``` |
-| Swagger Doc |  [http://localhost:8080/swagger-ui/](http://localhost:8080/swagger-ui/) |
+| Swagger Doc |  [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) |
 | search V1 | ```curl -X GET "http://localhost:8080/shoes/search" -H "version: 1" ``` |
 | search V2 | ```curl -X GET "http://localhost:8080/shoes/search" -H "version: 2" ``` |
 | search V3 | ```curl -X GET "http://localhost:8080/shoes/search" -H "version: 3" ``` |
