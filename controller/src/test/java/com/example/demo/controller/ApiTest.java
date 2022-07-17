@@ -14,13 +14,13 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -30,6 +30,7 @@ import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -281,7 +282,7 @@ public class ApiTest {
     }
 
     @Test
-    @AfterAll
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenShoesShop_whenUpdateStock_thenSuccess()
     {
         // Add 10 Boxes to stock
@@ -305,11 +306,44 @@ public class ApiTest {
                         AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(5).build(),
                         AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(41L)).quantity(0).build(),
                         AvailableShoe.builder().color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build()
-                )).build();;
+                )).build();
 
         Assert.assertEquals("Legacy shoes",
                 expectedStock.getShoes().stream().sorted().collect(Collectors.toList()),
                 stockResult.getShoes().stream().sorted().collect(Collectors.toList()));
+
+        // Create a new model by inserting a new model in stock
+        boxMovement = updateSock(
+                StockMovement.builder().color("BLACK").size(BigInteger.valueOf(45L)).quantity(1).build()
+                );
+        Assert.assertEquals("1: means new model is inserted", Integer.valueOf(1), boxMovement);
+
+        expectedStock = Stock.builder().state(Stock.State.SOME).shoes(
+                List.of(
+                        AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(5).build(),
+                        AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(45L)).quantity(1).build(),
+                        AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(41L)).quantity(0).build(),
+                        AvailableShoe.builder().color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build()
+                )).build();
+
+        stockResult = getStock();
+        Assert.assertEquals("Legacy shoes",
+                expectedStock.getShoes().stream().sorted().collect(Collectors.toList()),
+                stockResult.getShoes().stream().sorted().collect(Collectors.toList()));
+
+        Shoes shoes = this.search(Version.SHOP);
+
+        Shoes expectedShoes =
+                Shoes.builder().shoes(
+                List.of(
+                        Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLACK).size(BigInteger.valueOf(40L)).build(),
+                        Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLACK).size(BigInteger.valueOf(45L)).build(),
+                        Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLACK).size(BigInteger.valueOf(41L)).build(),
+                        Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLUE).size(BigInteger.valueOf(39L)).build()
+                )
+        ).build();
+        Assert.assertEquals("Legacy shoes", expectedShoes.getShoes().stream().sorted().collect(Collectors.toList()),
+                shoes.getShoes().stream().sorted().collect(Collectors.toList()));
     }
 
 
