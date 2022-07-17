@@ -11,6 +11,8 @@
     <module>core</module>
     <module>core-legacy</module>
     <module>core-new</module>
+    <module>shop-core</module>
+    <module>shop-database</module>
   </modules>
 
   <parent>
@@ -37,6 +39,10 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
 
@@ -54,14 +60,14 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <!--version>1.18.22</version-->
+      <version>1.18.22</version>
       <optional>true</optional>
     </dependency>
-    <!--dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency-->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>31.0.1-jre</version>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>

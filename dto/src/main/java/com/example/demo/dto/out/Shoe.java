@@ -5,15 +5,19 @@ import com.example.demo.dto.out.Shoe.ShoeBuilder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.math.BigInteger;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Value;
 
 @Value
 @Builder
 @JsonDeserialize(builder = ShoeBuilder.class)
-public class Shoe {
+public class Shoe implements Comparable<Shoe>{
 
+  @Schema(example = "Shop shoe")
   String     name;
+  @Schema(example = "39")
   BigInteger size;
   Color      color;
 
@@ -22,5 +26,16 @@ public class Shoe {
 
   }
 
-
+  @Override
+  public int compareTo(Shoe other) {
+    int result;
+    result = this.getName().compareTo(other.getName());
+    if( result == 0) {
+      result = this.getColor().compareTo(other.getColor());
+      if(result == 0){
+        result = this.getSize().compareTo(other.getSize());
+      }
+    }
+    return result;
+  }
 }
