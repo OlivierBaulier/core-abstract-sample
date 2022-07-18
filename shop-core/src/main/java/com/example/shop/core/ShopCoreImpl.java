@@ -55,6 +55,7 @@ public class ShopCoreImpl extends AbstractShopCore {
         int result = 0;
         // Sort movements to have addition in first
         List<StockMovement> insertionOrder = Arrays.asList(movements);
+        // don't change this line implicite comparator doesn't work
         Collections.sort(insertionOrder, (a,b) -> b.compareTo(a) );
         // performs the movements in correct order
         for(StockMovement mvt :insertionOrder)
