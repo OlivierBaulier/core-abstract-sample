@@ -61,10 +61,22 @@ mvn test -DfailIfNoTests=false -Dtest=ApiTest -pl controller -am
 | Swagger Doc |  [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) |
 | search V1 | ```curl -X GET "http://localhost:8080/shoes/search" -H "version: 1" ``` |
 | search V2 | ```curl -X GET "http://localhost:8080/shoes/search" -H "version: 2" ``` |
-| search V3 | ```curl -X GET "http://localhost:8080/shoes/search" -H "version: 3" ``` |
+| search V3 | ```curl -X GET "http://localhost:8080/shop/catalog" -H "version: 3" ``` |
 | get stock | ```curl -X GET "http://localhost:8080/shop/stock" -H "version: 3" ``` |
-| update stock single line | ```curl -X PATCH "http://localhost:8080/shop/stock" -H "version: 3" -H "Content-Type: application/json" -d '{ "size": 40, "color": "BLACK", "quantity": -1 }'``` |
-| update stock multi-lines | ```curl -X PATCH "http://localhost:8080/shop/stock" -H "version: 3" -H "Content-Type: application/json" -d '[{ "size": 40, "color": "BLACK", "quantity": -1 },{ "size": 39, "color": "BLUE", "quantity": -2 }]'``` |
+| update stock single line | ```curl -X PATCH "http://localhost:8080/shop/stock" -H "version: 3" -H "Content-Type: application/json" -d '{ "name": "Shop shoe", size": 40, "color": "BLACK", "quantity": -1 }'``` |
+| update stock multi-lines | ```curl -X PATCH "http://localhost:8080/shop/stock" -H "version: 3" -H "Content-Type: application/json" -d '[{ "Shop shoe", "size": 40, "color": "BLACK", "quantity": -1 },{ "Shop shoe", "size": 39, "color": "BLUE", "quantity": -2 }]'``` |
 | get stock  | ```curl -X GET "http://localhost:8080/shop/stock" -H "version: 3"``` |
 
+# Version commitées:
 
+| Version            | Command  |
+| ------------------ | --------------------------------------------------------- |
+| 0.1.3 | test unitaires, test d'API, Modèle mono table |
+| 0.1.4 | Test unitaires, test d'API, Modèle sur deux tables, Doc D'API sur Swagger, Découplage avec la version DEMO: plus de contraintes sur les couleurs et le nom du modèle |
+
+# Améliorations possibles
+- Séparation plus propre entre les DTOs et les entités 
+- Utilisation d'un ORM comme Hibernate
+- Distribution des packages sur les modules différents pour augmenter le découplage du code
+- OIntégration des tests dans une CI/CD
+- Déploiement sous Docker, docker-compose ou Kubernetes

@@ -126,14 +126,14 @@ public class ShopController {
                                           @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(examples = {
                                                   @ExampleObject(
                                                           name = "Add 10 shoes boxes",
-                                                          value = "{ \"size\": 40, \"color\": \"BLACK\", \"quantity\": 10 }"),
+                                                          value = "{ \"name\": \"Shop shoe\", \"size\": 40, \"color\": \"BLACK\", \"quantity\": 10 }"),
                                                   @ExampleObject(
                                                           name = "remove 3 shoes box",
-                                                          value = "{ \"size\": 39, \"color\": \"BLUE\", \"quantity\": -3 }"),
+                                                          value = "{ \"name\": \"Shop shoe\", \"size\": 39, \"color\": \"BLUE\", \"quantity\": -3 }"),
                                                   @ExampleObject(
                                                           name = "multi-lines update",
-                                                          value = "[{ \"size\": 40, \"color\": \"BLACK\", \"quantity\": -2 }," +
-                                                                  "{ \"size\": 39, \"color\": \"BLUE\", \"quantity\": 10 }]")
+                                                          value = "[{  \"name\": \"Shop shoe\", \"size\": 40, \"color\": \"BLACK\", \"quantity\": -2 }," +
+                                                                  "{ \"name\": \"Shop shoe\", \"size\": 39, \"color\": \"BLUE\", \"quantity\": 10 }]")
                                           }))
                                           @RequestBody List<@Valid StockMovement> stockMovements) throws Exception {
 
