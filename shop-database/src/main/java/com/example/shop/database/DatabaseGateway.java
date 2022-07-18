@@ -1,11 +1,11 @@
 package com.example.shop.database;
 
 import com.example.shop.core.entities.FilterEntity;
-import com.example.demo.dto.in.ShoeFilter;
+import com.example.shop.dto.in.ModelFilter;
 import com.example.shop.dto.in.StockMovement;
 import com.example.shop.dto.out.AvailableShoe;
-import com.example.demo.dto.out.Shoe;
 import com.example.shop.core.DatabaseAdapter;
+import com.example.shop.dto.out.ShoeModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -53,10 +53,11 @@ public class DatabaseGateway implements DatabaseAdapter {
 
 
     @Override
-    public List<Shoe> getCatalog(ShoeFilter filter) {
+    public List<ShoeModel> getCatalog(ModelFilter filter) {
         SqlParameterSource parameters = new MapSqlParameterSource()
-                .addValue("color", (filter != null && filter.getColor().isPresent() )? filter.getColor().get().name() : null)
-                .addValue("size", (filter != null && filter.getSize().isPresent() )? filter.getSize().get() : null);
+                .addValue("color", (filter != null && filter.getColor().isPresent() )? filter.getColor().get() : null)
+                .addValue("size", (filter != null && filter.getSize().isPresent() )? filter.getSize().get() : null)
+                .addValue("name", (filter != null && filter.getName().isPresent() )? filter.getName().get() : null);
         return myNamedParameterJdbcTemplate.query(CATALOG_SQL, parameters, new ShoeMapper() );
     }
 
@@ -70,7 +71,7 @@ public class DatabaseGateway implements DatabaseAdapter {
         SqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("color", filter.getColor())
                 .addValue("size", filter.getSize())
-                .addValue("name", "Shop shoe");
+                .addValue("name", filter.getName());
         return myNamedParameterJdbcTemplate.query(FILTERED_STOCK_SQL, parameters,  new AvailableShoeMapper());
     }
 
@@ -79,7 +80,7 @@ public class DatabaseGateway implements DatabaseAdapter {
         SqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("color", filter.getColor())
                 .addValue("size", filter.getSize())
-                .addValue("name", "Shop shoe");
+                .addValue("name", filter.getName());
         Integer result = myNamedParameterJdbcTemplate.queryForObject(FILTERED_COUNT_SQL, parameters, Integer.class);
         return (result!= null)? result: 0;
     }
@@ -91,7 +92,7 @@ public class DatabaseGateway implements DatabaseAdapter {
             SqlParameterSource parameters = new MapSqlParameterSource()
                     .addValue("color", movement.getColor())
                     .addValue("size", movement.getSize())
-                    .addValue("name", "Shop shoe");
+                    .addValue("name", movement.getName());
             return myNamedParameterJdbcTemplate.update(INSERT_SQL, parameters);
         }).sum();
 
@@ -110,13 +111,13 @@ public class DatabaseGateway implements DatabaseAdapter {
         SqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("color", movement.getColor())
                 .addValue("size", movement.getSize())
-                .addValue("name", "Shop shoe");
+                .addValue("name", movement.getName());
         Integer isExist = myNamedParameterJdbcTemplate.queryForObject(IS_MODEL_EXIST_SQL, parameters, Integer.class);
         if(isExist != null && isExist ==1) return;
         parameters = new MapSqlParameterSource()
                 .addValue("color", movement.getColor())
                 .addValue("size", movement.getSize())
-                .addValue("name", "Shop shoe");
+                .addValue("name", movement.getName());
          myNamedParameterJdbcTemplate.update(ADD_MODEL, parameters);
     }
 

@@ -11,6 +11,7 @@ public class AvailableShoeMapper implements RowMapper<AvailableShoe> {
     @Override
     public AvailableShoe mapRow(ResultSet rs, int rowNum) throws SQLException {
         return AvailableShoe.builder()
+                .name(rs.getString("name"))
                 .color(rs.getString("color"))
                 .quantity(rs.getInt("quantity"))
                 .size(rs.getBigDecimal("size").toBigInteger()).build();

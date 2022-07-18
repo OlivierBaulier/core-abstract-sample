@@ -1,10 +1,10 @@
 package com.example.shop.core;
 
-import com.example.demo.dto.in.ShoeFilter;
+import com.example.shop.dto.in.ModelFilter;
 import com.example.shop.dto.in.StockMovement;
 import com.example.shop.dto.out.AvailableShoe;
-import com.example.demo.dto.out.Shoe;
-import com.example.demo.dto.out.Shoes;
+import com.example.shop.dto.out.Catalog;
+import com.example.shop.dto.out.ShoeModel;
 import com.example.shop.dto.out.Stock;
 import com.example.demo.facade.ShoeFacade;
 import com.example.shop.facade.ShopFacade;
@@ -22,6 +22,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringRunner;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,21 +61,21 @@ class ShopCoreImplTest {
 
 
     @Test
-    void givenVersion3_whenSearch_thenReturnShopCatalog() {
+    void givenVersion3_whenGetCatalog_thenReturnShopCatalog() {
 
         // Database MOCK
-        List<Shoe> shopCatalog  = new ArrayList<Shoe>();
-        shopCatalog.add(Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLUE).size(BigInteger.valueOf(39)).build());
-        shopCatalog.add(Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLACK).size(BigInteger.valueOf(40)).build());
+        List<ShoeModel> shoeModels  = new ArrayList<>();
+        shoeModels.add(ShoeModel.builder().name("Shop shoe").color("BLUE").size(39).build());
+        shoeModels.add(ShoeModel.builder().name("Shop shoe").color("BLACK").size(40).build());
 
         // Mock Database
-        when(databaseAdapter.getCatalog(new ShoeFilter(null, null))).thenReturn(shopCatalog);
+        when(databaseAdapter.getCatalog(new ModelFilter(null, null, null))).thenReturn(shoeModels);
 
-        // test search
-        Shoes catalogResult = shoeFacade.get(3).search(new ShoeFilter(null, null));
+        // test catalog
+        Catalog catalogResult = shopFacade.get(3).catalog(new ModelFilter(null, null, null));
 
         // check result
-        Shoes expectedShes = Shoes.builder().shoes(shopCatalog).build();
+        Catalog expectedShes = Catalog.builder().shoes(shoeModels).build();
         Assert.assertEquals("Check get:/shoes/search ShopResult", expectedShes, catalogResult);
     }
 
@@ -112,8 +113,8 @@ class ShopCoreImplTest {
         // Database MOCK
         Stock fullStock = Stock.builder().state(Stock.State.FULL).shoes(
                 List.of(
-                        AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(20).build(),
-                        AvailableShoe.builder().color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build()
+                        AvailableShoe.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(40L)).quantity(20).build(),
+                        AvailableShoe.builder().name("Shop shoe").color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build()
                 )
         ).build();
         // Mock Database
@@ -131,15 +132,13 @@ class ShopCoreImplTest {
     void givenEmptyStock_whenRequestSomeShoes_thenThrowsInsufficientStockException() {
 
         // check the exception case
-        Exception exception = assertThrows(Exception.class, () -> {
-            int stock = removeShoesFromStock(this.emptyStock,
-                    StockMovement.builder()
-                            .color("Black")
-                            .size(BigInteger.valueOf(40))
-                            .quantity(-10)
-                            .build()
-            );
-        });
+        Exception exception = assertThrows(Exception.class, () -> removeShoesFromStock(this.emptyStock,
+            StockMovement.builder().name("Shop shoe")
+                    .color("Black")
+                    .size(BigInteger.valueOf(40))
+                    .quantity(-10)
+                    .build()
+    ));
 
         // check result
         Assert.assertEquals("Check exception", InsufficientStockException.class, exception.getClass());
@@ -151,15 +150,13 @@ class ShopCoreImplTest {
     void givenInitialStock_whenRequestMoreThanAvailableBoxes_thenThrowsInsufficientStockException() {
 
         // check the exception case
-        Exception exception = assertThrows(Exception.class, () -> {
-            int stock = removeShoesFromStock(this.initialStock,
-                    StockMovement.builder()
-                            .color("Black")
-                            .size(BigInteger.valueOf(40))
-                            .quantity(-11)
-                            .build()
-            );
-        });
+        Exception exception = assertThrows(Exception.class, () -> removeShoesFromStock(this.initialStock,
+               StockMovement.builder().name("Shop shoe")
+                       .color("Black")
+                       .size(BigInteger.valueOf(40))
+                       .quantity(-11)
+                       .build()
+       ));
 
         // check result
         Assert.assertEquals("Check exception", InsufficientStockException.class, exception.getClass());
@@ -171,9 +168,9 @@ class ShopCoreImplTest {
     void givenInitialStock_whenRequestQuantityIsAvailable_thenSuccess() throws Exception {
 
         // Remove 5 shoes boxes from initial stock
-        int requestResult =  removeShoesFromStock(
+          removeShoesFromStock(
                 this.initialStock,
-                StockMovement.builder()
+                StockMovement.builder().name("Shop shoe")
                         .color("BLACK")
                         .size(BigInteger.valueOf(40))
                         .quantity(-5)
@@ -186,9 +183,9 @@ class ShopCoreImplTest {
     void givenInitialStock_whenRequestAllAvailableBoxes_thenSuccess() throws Exception {
 
         // Remove 10 shoes boxes from initial stock
-        int requestResult =  removeShoesFromStock(
+          removeShoesFromStock(
                 this.initialStock,
-                StockMovement.builder()
+                StockMovement.builder().name("Shop shoe")
                         .color("BLACK")
                         .size(BigInteger.valueOf(40))
                         .quantity(-10)
@@ -201,16 +198,14 @@ class ShopCoreImplTest {
     void givenInitialStock_whenAdditionExceedCapacity_thenThrowsCapacityReached() {
 
         // Add 11 shoes boxes into a stock already full
-        Exception exception = assertThrows(Exception.class, () -> {
-            int stock =  AddShoes(
-                    this.initialStock,
-                    StockMovement.builder()
-                            .color("Black")
-                            .size(BigInteger.valueOf(40))
-                            .quantity(11)
-                            .build()
-            );
-        });
+        Exception exception = assertThrows(Exception.class, () -> AddShoes(
+              this.initialStock,
+              StockMovement.builder().name("Shop shoe")
+                      .color("Black")
+                      .size(BigInteger.valueOf(40))
+                      .quantity(11)
+                      .build()
+      ));
         // check result
         Assert.assertEquals("Check exception", CapacityReachedException.class, exception.getClass());
         Assert.assertTrue(exception.getMessage().contains("The quantity reaches the capacity limit of the shop :"));
@@ -221,16 +216,14 @@ class ShopCoreImplTest {
 
         // Add one shoes box in fullStock
         // check the corresponding exception
-        Exception exception = assertThrows(Exception.class, () -> {
-            int stock =  AddShoes(
-                    this.fullStock,
-                    StockMovement.builder()
-                            .color("Black")
-                            .size(BigInteger.valueOf(40))
-                            .quantity(1)
-                            .build()
-            );
-        });
+        Exception exception = assertThrows(Exception.class, () -> AddShoes(
+              this.fullStock,
+              StockMovement.builder().name("Shop shoe")
+                      .color("Black")
+                      .size(BigInteger.valueOf(40))
+                      .quantity(1)
+                      .build()
+      ));
 
         // check result
         Assert.assertEquals("Check exception", CapacityReachedException.class, exception.getClass());
@@ -242,7 +235,7 @@ class ShopCoreImplTest {
     void givenInitialStock_whenEnoughCapacity_thenSuccess() throws Exception {
         // Add 5 shoes boxes in initial stock
         AddShoes(this.initialStock,
-                StockMovement.builder()
+                StockMovement.builder().name("Shop shoe")
                         .color("Black")
                         .size(BigInteger.valueOf(40))
                         .quantity(5)
@@ -254,7 +247,7 @@ class ShopCoreImplTest {
     void givenInitialStock_whenAddFullCapacity_thenSuccess() throws Exception {
         // Add 10 shoes boxes in initial stock
         AddShoes(this.initialStock,
-                StockMovement.builder()
+                StockMovement.builder().name("Shop shoe")
                         .color("Black")
                         .size(BigInteger.valueOf(40))
                         .quantity(10)
@@ -266,16 +259,14 @@ class ShopCoreImplTest {
 
         // Add 11 shoes in initial Stock
         // Check corresponding exception
-        Exception exception = assertThrows(Exception.class, () -> {
-            int stock =  AddShoes(
-                    this.initialStock,
-                    StockMovement.builder()
-                            .color("Black")
-                            .size(BigInteger.valueOf(40))
-                            .quantity(11)
-                            .build()
-            );
-        });
+        Exception exception = assertThrows(Exception.class, () -> AddShoes(
+                this.initialStock,
+                StockMovement.builder().name("Shop shoe")
+                        .color("Black")
+                        .size(BigInteger.valueOf(40))
+                        .quantity(11)
+                        .build()
+        ));
 
         // check result
         Assert.assertEquals("Check exception", CapacityReachedException.class, exception.getClass());
@@ -288,9 +279,9 @@ class ShopCoreImplTest {
         // Add 30 shoes Boxes and remove 20.
         int result  = this.updateStock(
                 this.initialStock,
-                StockMovement.builder().color("Black").size(BigInteger.valueOf(40)).quantity(-20).build(),
-                StockMovement.builder().color("Black").size(BigInteger.valueOf(40)).quantity(20).build(),
-                StockMovement.builder().color("Black").size(BigInteger.valueOf(40)).quantity(10).build()
+                StockMovement.builder().name("Shop shoe").color("Black").size(BigInteger.valueOf(40)).quantity(-20).build(),
+                StockMovement.builder().name("Shop shoe").color("Black").size(BigInteger.valueOf(40)).quantity(20).build(),
+                StockMovement.builder().name("Shop shoe").color("Black").size(BigInteger.valueOf(40)).quantity(10).build()
         );
 
         // check the number of shoes boxes movements
@@ -305,14 +296,12 @@ class ShopCoreImplTest {
 
         // Add 31 shoes Boxes and remove 20.
         // check corresponding exception
-        Exception exception = assertThrows(Exception.class, () -> {
-            int stock =  this.updateStock(
-                    this.initialStock,
-                    StockMovement.builder().color("Black").size(BigInteger.valueOf(40)).quantity(-20).build(),
-                    StockMovement.builder().color("Black").size(BigInteger.valueOf(40)).quantity(20).build(),
-                    StockMovement.builder().color("Black").size(BigInteger.valueOf(40)).quantity(11).build()
-            );
-        });
+        Exception exception = assertThrows(Exception.class, () -> this.updateStock(
+              this.initialStock,
+              StockMovement.builder().name("Shop shoe").color("Black").size(BigInteger.valueOf(40)).quantity(-20).build(),
+              StockMovement.builder().name("Shop shoe").color("Black").size(BigInteger.valueOf(40)).quantity(20).build(),
+              StockMovement.builder().name("Shop shoe").color("Black").size(BigInteger.valueOf(40)).quantity(11).build()
+      ));
 
         // check result
         Assert.assertEquals("Check exception", CapacityReachedException.class, exception.getClass());
@@ -324,17 +313,17 @@ class ShopCoreImplTest {
      */
     Stock initialStock = Stock.builder().state(Stock.State.SOME).shoes(
             List.of(
-                    AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(10).build(),
-                    AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(41L)).quantity(0).build(),
-                    AvailableShoe.builder().color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build()
+                    AvailableShoe.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(40L)).quantity(10).build(),
+                    AvailableShoe.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(41L)).quantity(0).build(),
+                    AvailableShoe.builder().name("Shop shoe").color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build()
             )
     ).build();
 
     Stock fullStock = Stock.builder().state(Stock.State.SOME).shoes(
             List.of(
-                    AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(10).build(),
-                    AvailableShoe.builder().color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build(),
-                    AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(41L)).quantity(10).build()
+                    AvailableShoe.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(40L)).quantity(10).build(),
+                    AvailableShoe.builder().name("Shop shoe").color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build(),
+                    AvailableShoe.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(41L)).quantity(10).build()
             )
     ).build();
 
@@ -358,9 +347,9 @@ class ShopCoreImplTest {
         when(databaseAdapter.countShoes(any())).thenReturn(
                 currentStock.getShoes().stream()
                         .filter(x -> (x.getSize().intValue() == shoesRequest.getSize().intValue() &&
-                                x.getColor() == shoesRequest.getColor()
+                                x.getColor().equals(shoesRequest.getColor())
                         ))
-                        .mapToInt(x -> x.getQuantity())
+                        .mapToInt(AvailableShoe::getQuantity)
                         .sum()
         );
         when(databaseAdapter.destock(shoesRequest)).thenReturn(shoesRequest.getQuantity());
@@ -390,18 +379,14 @@ class ShopCoreImplTest {
      * @throws Exception Quantity exceeds the shop capacity, or Data base Error
      */
     private int AddShoes(Stock currentStock, StockMovement ...shoesAdditions) throws Exception {
-/*        int result = 0;
-        for(StockMovement shoesAddition: shoesAdditions){
-            result += AddShoes(currentStock, shoesAddition );
-        } */
         return this.updateStock(currentStock, shoesAdditions);
     }
 
     /** Mock the behavior of the database in cases of mutli-lines mouvement
      *
-     * @param currentStock
-     * @param movements
-     * @return
+     * @param currentStock initial stock for emulation
+     * @param movements to apply to stock
+     * @return the number of shoe boxes moved
      * @throws Exception
      */
     private int updateStock(Stock currentStock, StockMovement ...movements) throws Exception {
@@ -409,7 +394,7 @@ class ShopCoreImplTest {
         int addedMvtCount = 0;
         int removedMvtCount = 0;
         int initialCount = currentStock.getShoes().stream()
-                .mapToInt(x -> x.getQuantity())
+                .mapToInt(AvailableShoe::getQuantity)
                 .sum();
         for(StockMovement movement: movements){
             // count the cumulative movement of boxes
@@ -455,7 +440,7 @@ class ShopCoreImplTest {
         // Database MOCK
         when(this.databaseAdapter.countShoes(any())).thenReturn(
                 currentStock.getShoes().stream()
-                        .mapToInt(x -> x.getQuantity())
+                        .mapToInt(AvailableShoe::getQuantity)
                         .sum()
         );
         when(this.databaseAdapter.stock(shoesAddition)).thenReturn(shoesAddition.getQuantity());

@@ -2,10 +2,13 @@ package com.example.shop.core;
 
 import com.example.demo.core.Implementation;
 import com.example.demo.dto.in.ShoeFilter;
+import com.example.shop.dto.in.ModelFilter;
 import com.example.shop.dto.in.StockMovement;
 import com.example.shop.dto.out.AvailableShoe;
 import com.example.demo.dto.out.Shoe;
 import com.example.demo.dto.out.Shoes;
+import com.example.shop.dto.out.Catalog;
+import com.example.shop.dto.out.ShoeModel;
 import com.example.shop.dto.out.Stock;
 import com.example.shop.core.entities.FilterEntity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +27,9 @@ public class ShopCoreImpl extends AbstractShopCore {
     private DatabaseAdapter databaseAdapter;
 
     @Override
-    public Shoes search(ShoeFilter filter) {
-        List<Shoe> shoes = this.databaseAdapter.getCatalog(filter);
-        return  Shoes.builder().shoes(shoes).build();
+    public Catalog catalog(ModelFilter filter) {
+        List<ShoeModel> shoes = this.databaseAdapter.getCatalog(filter);
+        return  Catalog.builder().shoes(shoes).build();
     }
 
 
@@ -75,7 +78,7 @@ public class ShopCoreImpl extends AbstractShopCore {
                     throw new InsufficientStockException("stockMovement",
                             String.format("Not enough stock : (stock %d : Requested %d)", result, -mvt.getQuantity()),
                             Map.ofEntries(
-                                    Map.entry("availableShoes", Integer.valueOf(resultMvt)),
+                                    Map.entry("availableShoes", resultMvt),
                                     Map.entry("movement", mvt)
                             )
                     );
@@ -83,7 +86,7 @@ public class ShopCoreImpl extends AbstractShopCore {
                     throw new CapacityReachedException("stockMovement",
                             String.format("The quantity reaches the capacity limit of the shop : (free places %d : addition %d)", result, mvt.getQuantity()),
                             Map.ofEntries(
-                                    Map.entry("free places", Integer.valueOf(resultMvt)),
+                                    Map.entry("free places", resultMvt),
                                     Map.entry("movement", mvt)
                             )
                     );
@@ -91,14 +94,14 @@ public class ShopCoreImpl extends AbstractShopCore {
             }
             result += resultMvt;
         }
-        int newStockCount = this.databaseAdapter.countShoes( new FilterEntity(null, null));
+        int newStockCount = this.databaseAdapter.countShoes( new FilterEntity(null,null, null));
         // check if limit is reached
         if(newStockCount > MX_CAPACITY){
             int freePlaces = MX_CAPACITY -(newStockCount-result);
             throw new CapacityReachedException("stockMovements",
                     String.format("The quantity reaches the capacity limit of the shop : (free places %d : addition %d)", freePlaces, result),
                     Map.ofEntries(
-                            Map.entry("free places", Integer.valueOf(freePlaces)),
+                            Map.entry("free places", freePlaces),
                             Map.entry("movement", movements)
                     )
             );
@@ -115,22 +118,22 @@ public class ShopCoreImpl extends AbstractShopCore {
         }
     }
 
-    /** App
+    /** Single line version of stock update
      *
-     * @param movement
-     * @return
+     * @param movement to apply to stock
+     * @return Sum of all movements
      * @throws Exception
      */
     int stockUpdateSingleLine(StockMovement movement) throws Exception {
         int result = 0;
         if( movement.getQuantity() < 0 ) {
-            int availableShoes = this.databaseAdapter.countShoes( new FilterEntity( movement.getColor(), movement.getSize()));
+            int availableShoes = this.databaseAdapter.countShoes( new FilterEntity(  movement.getName(),movement.getColor(), movement.getSize()));
             int expectedResult = availableShoes +  movement.getQuantity();
             if( expectedResult < 0 ){
                 throw new InsufficientStockException("stockMovement",
                         String.format("Not enough stock : (stock %d : Requested %d)", availableShoes, -movement.getQuantity() ),
                         Map.ofEntries(
-                                Map.entry("availableShoes", Integer.valueOf(availableShoes)),
+                                Map.entry("availableShoes", availableShoes),
                                 Map.entry("movement", movement)
                         )
                 );
@@ -147,13 +150,13 @@ public class ShopCoreImpl extends AbstractShopCore {
                 }
             }
         } else if( movement.getQuantity() > 0 ) {
-            int availableShoes = this.databaseAdapter.countShoes( new FilterEntity(null, null));
+            int availableShoes = this.databaseAdapter.countShoes( new FilterEntity(null,null, null));
             int expectedResult = availableShoes + movement.getQuantity();
             if(expectedResult > MX_CAPACITY){
                 throw new CapacityReachedException("stockMovement",
                         String.format("The quantity reaches the capacity limit of the shop : (free places %d : addition %d)", MX_CAPACITY-availableShoes, movement.getQuantity() ),
                         Map.ofEntries(
-                                Map.entry("freePlaces", Integer.valueOf(MX_CAPACITY - availableShoes)),
+                                Map.entry("freePlaces", MX_CAPACITY - availableShoes),
                                 Map.entry("movement", movement)
                         )
                 );
@@ -163,7 +166,7 @@ public class ShopCoreImpl extends AbstractShopCore {
                     throw new CapacityReachedException("stockMovement",
                             String.format("The quantity reaches the capacity limit of the shop : (free places %d : addition %d)", result, movement.getQuantity() ),
                             Map.ofEntries(
-                                    Map.entry("freePLaces", Integer.valueOf(result)),
+                                    Map.entry("freePLaces", result),
                                     Map.entry("movement", movement)
                             )
                     );

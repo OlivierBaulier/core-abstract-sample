@@ -3,10 +3,9 @@ package com.example.demo.controller;
 import com.example.demo.dto.in.ShoeFilter;
 import com.example.demo.dto.out.Shoe;
 import com.example.demo.dto.out.Shoes;
+import com.example.shop.dto.in.ModelFilter;
 import com.example.shop.dto.in.StockMovement;
-import com.example.shop.dto.out.ApiError;
-import com.example.shop.dto.out.AvailableShoe;
-import com.example.shop.dto.out.Stock;
+import com.example.shop.dto.out.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -44,8 +43,7 @@ public class ApiTest {
     public enum Version{
         LEGACY("1"),
         NEW("2"),
-        SHOP("3")
-        ;
+        SHOP("3");
 
         public final String tag;
 
@@ -56,17 +54,17 @@ public class ApiTest {
 
     private Stock initialStock = Stock.builder().state(Stock.State.SOME).shoes(
             List.of(
-                    AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(10).build(),
-                    AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(41L)).quantity(0).build(),
-                    AvailableShoe.builder().color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build()
+                    AvailableShoe.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(40L)).quantity(10).build(),
+                    AvailableShoe.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(41L)).quantity(0).build(),
+                    AvailableShoe.builder().name("Shop shoe").color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build()
             )).build();
 
-    private Shoes initialCatalog = Shoes.builder().shoes(
+    private Catalog initialCatalog = Catalog.builder().shoes(
             List.of(
-            Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLACK).size(BigInteger.valueOf(40L)).build(),
-                        Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLACK).size(BigInteger.valueOf(41L)).build(),
-                        Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLUE).size(BigInteger.valueOf(39L)).build()
-                )
+                    ShoeModel.builder().name("Shop shoe").color("BLACK").size(40).build(),
+                    ShoeModel.builder().name("Shop shoe").color("BLACK").size(41).build(),
+                    ShoeModel.builder().name("Shop shoe").color("BLUE").size(39).build()
+            )
                         ).build();
     private RestTemplate restTemplate;
 
@@ -122,7 +120,7 @@ public class ApiTest {
 
     @DisplayName("Test: new ")
     @Test
-    public void givenNewShow_whenSearchWithoutFilter_thenSuccess()
+    public void givenNew_whenSearchWithoutFilter_thenSuccess()
     {
 
         Shoes shoes = this.search(Version.NEW);
@@ -140,7 +138,7 @@ public class ApiTest {
 
     @DisplayName("Test: new ")
     @Test
-    public void givenShoesShop_whenSearchWithFilter_thenSuccess() {
+    public void givenNew_whenSearchWithFilter_thenSuccess() {
 
         Shoes shoes = this.search(Version.NEW,
                 new ShoeFilter( BigInteger.ONE, ShoeFilter.Color.BLUE));
@@ -158,7 +156,7 @@ public class ApiTest {
 
     @DisplayName("Test: shop")
     @Test
-    public void givenShoesShop_whenSearchWithSizeFilterOnly_thenSuccess()
+    public void givenNew_whenSearchWithSizeFilterOnly_thenSuccess()
     {
 
         Shoes shoes = this.search(Version.NEW,
@@ -177,7 +175,7 @@ public class ApiTest {
     }
 
     @Test
-    public void givenShoesShop_whenSearchWithColorFilterOnly_thenSuccess()
+    public void givenNew_whenSearchWithColorFilterOnly_thenSuccess()
     {
 
         Shoes shoes = this.search(Version.NEW,
@@ -199,9 +197,9 @@ public class ApiTest {
     @Test
     public void givenShoesShop_whenGetShoe_thenSuccess()
     {
-        Shoes shoes = this.search(Version.SHOP);
+        Catalog catalog = this.catalog();
 
-        Shoes expectedShoes = this.initialCatalog;
+        Catalog expectedShoes = this.initialCatalog;
 /*                Shoes.builder().shoes(
                 List.of(
                         Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLACK).size(BigInteger.valueOf(40L)).build(),
@@ -209,22 +207,22 @@ public class ApiTest {
                         Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLUE).size(BigInteger.valueOf(39L)).build()
                 )
         ).build(); */
-        Assert.assertEquals("Legacy shoes", expectedShoes.getShoes().stream().sorted().collect(Collectors.toList()),
-                shoes.getShoes().stream().sorted().collect(Collectors.toList()));
+        Assert.assertEquals("check catalog", expectedShoes.getShoes().stream().sorted().collect(Collectors.toList()),
+                catalog.getShoes().stream().sorted().collect(Collectors.toList()));
     }
 
     @Test
-    public void givenShoesShop_whenGetShoeWithFilter_thenSuccess()
+    public void givenShoesShop_whenGetCatalogWithFilter_thenSuccess()
     {
-        Shoes shoes = this.search(Version.SHOP, new ShoeFilter(BigInteger.valueOf(39L), ShoeFilter.Color.BLUE));
+        Catalog catalog = this.catalog( ModelFilter.builder().size(39).color("BLUE").build());
 
-        Shoes expectedShoes = Shoes.builder().shoes(
+        Catalog expectedShoes = Catalog.builder().shoes(
                 List.of(
-                        Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLUE).size(BigInteger.valueOf(39L)).build()
+                        ShoeModel.builder().name("Shop shoe").color("BLUE").size(39).build()
                 )
         ).build();
         Assert.assertEquals("Legacy shoes", expectedShoes.getShoes().stream().sorted().collect(Collectors.toList()),
-                shoes.getShoes().stream().sorted().collect(Collectors.toList()));
+                catalog.getShoes().stream().sorted().collect(Collectors.toList()));
     }
 
     @Test
@@ -243,7 +241,7 @@ public class ApiTest {
     public void givenShoesShop_whenUpdateStockWithoutColor_thenThrowInvalidColor() throws JsonProcessingException {
         HttpClientErrorException exception = (HttpClientErrorException)assertThrows(Exception.class, () -> {
             int movementBalance =  updateSock(
-                    StockMovement.builder().size(BigInteger.valueOf(40L)).quantity(10).build()
+                    StockMovement.builder().name("Shop shoe").size(BigInteger.valueOf(40L)).quantity(10).build()
             );
         });
 
@@ -256,7 +254,7 @@ public class ApiTest {
     public void givenInitialStock_whenAddedShoesExceedCapacity_thenThrowsCapacityReached() throws JsonProcessingException {
         HttpClientErrorException exception = (HttpClientErrorException)assertThrows(Exception.class, () -> {
             int movementBalance =  updateSock(
-                    StockMovement.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(30).build()
+                    StockMovement.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(40L)).quantity(30).build()
             );
         });
 
@@ -271,7 +269,7 @@ public class ApiTest {
     public void givenInitialStock_whenAddedAddMultiLineStockOutsideCapacity_thenThrowsCapacityReached() throws JsonProcessingException {
         HttpClientErrorException exception = (HttpClientErrorException)assertThrows(Exception.class, () -> {
             int movementBalance =  updateSock(
-                    StockMovement.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(-30).build()
+                    StockMovement.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(40L)).quantity(-30).build()
             );
         });
 
@@ -287,13 +285,13 @@ public class ApiTest {
     {
         // Add 10 Boxes to stock
         Integer boxMovement = updateSock(
-                StockMovement.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(10).build()
+                StockMovement.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(40L)).quantity(10).build()
         );
         Assert.assertEquals("Check BoxMovement", Integer.valueOf(10), boxMovement);
 
         // remove 5 boxes from stock
         boxMovement = updateSock(
-                StockMovement.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(-15).build()
+                StockMovement.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(40L)).quantity(-15).build()
         );
         Assert.assertEquals("Check the number of stocked shoes", Integer.valueOf(-15), boxMovement);
 
@@ -303,9 +301,9 @@ public class ApiTest {
         //Verify expected stock
         Stock expectedStock = Stock.builder().state(Stock.State.SOME).shoes(
                 List.of(
-                        AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(5).build(),
-                        AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(41L)).quantity(0).build(),
-                        AvailableShoe.builder().color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build()
+                        AvailableShoe.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(40L)).quantity(5).build(),
+                        AvailableShoe.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(41L)).quantity(0).build(),
+                        AvailableShoe.builder().name("Shop shoe").color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build()
                 )).build();
 
         Assert.assertEquals("Legacy shoes",
@@ -314,16 +312,16 @@ public class ApiTest {
 
         // Create a new model by inserting a new model in stock
         boxMovement = updateSock(
-                StockMovement.builder().color("BLACK").size(BigInteger.valueOf(45L)).quantity(1).build()
+                StockMovement.builder().name("Shop shoe").color("GREEN").size(BigInteger.valueOf(45L)).quantity(1).build()
                 );
         Assert.assertEquals("1: means new model is inserted", Integer.valueOf(1), boxMovement);
 
         expectedStock = Stock.builder().state(Stock.State.SOME).shoes(
                 List.of(
-                        AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(40L)).quantity(5).build(),
-                        AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(45L)).quantity(1).build(),
-                        AvailableShoe.builder().color("BLACK").size(BigInteger.valueOf(41L)).quantity(0).build(),
-                        AvailableShoe.builder().color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build()
+                        AvailableShoe.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(40L)).quantity(5).build(),
+                        AvailableShoe.builder().name("Shop shoe").color("GREEN").size(BigInteger.valueOf(45L)).quantity(1).build(),
+                        AvailableShoe.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(41L)).quantity(0).build(),
+                        AvailableShoe.builder().name("Shop shoe").color("BLUE").size(BigInteger.valueOf(39L)).quantity(10).build()
                 )).build();
 
         stockResult = getStock();
@@ -331,19 +329,57 @@ public class ApiTest {
                 expectedStock.getShoes().stream().sorted().collect(Collectors.toList()),
                 stockResult.getShoes().stream().sorted().collect(Collectors.toList()));
 
-        Shoes shoes = this.search(Version.SHOP);
+        Catalog catalog = this.catalog();
 
-        Shoes expectedShoes =
-                Shoes.builder().shoes(
+        Catalog expectedCatalog =
+                Catalog.builder().shoes(
                 List.of(
-                        Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLACK).size(BigInteger.valueOf(40L)).build(),
-                        Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLACK).size(BigInteger.valueOf(45L)).build(),
-                        Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLACK).size(BigInteger.valueOf(41L)).build(),
-                        Shoe.builder().name("Shop shoe").color(ShoeFilter.Color.BLUE).size(BigInteger.valueOf(39L)).build()
+                        ShoeModel.builder().name("Shop shoe").color("BLACK").size(40).build(),
+                        ShoeModel.builder().name("Shop shoe").color("GREEN").size(45).build(),
+                        ShoeModel.builder().name("Shop shoe").color("BLACK").size(41).build(),
+                        ShoeModel.builder().name("Shop shoe").color("BLUE").size(39).build()
                 )
         ).build();
-        Assert.assertEquals("Legacy shoes", expectedShoes.getShoes().stream().sorted().collect(Collectors.toList()),
-                shoes.getShoes().stream().sorted().collect(Collectors.toList()));
+        Assert.assertEquals("Legacy shoes", expectedCatalog.getShoes().stream().sorted().collect(Collectors.toList()),
+                catalog.getShoes().stream().sorted().collect(Collectors.toList()));
+    }
+
+
+
+    private Catalog catalog(){
+        return this.catalog(null);
+    }
+
+    private Catalog catalog(ModelFilter filter  ){
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(this.shopUrl+"catalog");
+        if(filter != null && filter.getSize().isPresent() ) {
+            builder = builder.queryParam("size", filter.getSize().get());
+        }
+        if(filter != null && filter.getColor().isPresent() ) {
+            builder = builder.queryParam("color", filter.getColor().get());
+        }
+        if(filter != null && filter.getName().isPresent() ) {
+            builder = builder.queryParam("name", filter.getName().get());
+        }
+        String uriBuilder = builder.build().encode().toUriString();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("version", Version.SHOP.tag);
+
+        HttpEntity<Catalog> request = new HttpEntity<>(headers);
+
+        // make an HTTP GET request with headers
+        ResponseEntity<Catalog> result = restTemplate.exchange(
+                uriBuilder,
+                HttpMethod.GET,
+                request,
+                Catalog.class
+        );
+
+        //Verify http code
+        Assert.assertEquals("Http code",200,result.getStatusCode().value());
+
+        return result.getBody();
     }
 
 

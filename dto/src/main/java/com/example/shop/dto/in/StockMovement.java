@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
+import lombok.Value;
 
 
 import java.math.BigInteger;
@@ -19,6 +20,9 @@ import javax.validation.constraints.NotNull;
 @Builder
 public class StockMovement implements  Comparable<StockMovement>{
 
+    @NotNull(message = "name shouldn't be null")
+    @Schema(example = "Shop shoe")
+    @Getter String name;
     @NotNull(message = "size shouldn't be null")
     @Schema(example = "40")
     @Getter BigInteger size;
@@ -38,6 +42,9 @@ public class StockMovement implements  Comparable<StockMovement>{
             result = this.getSize().compareTo(other.getSize());
             if(result == 0){
                 result = this.getQuantity() - other.getQuantity();
+                if(result == 0){
+                    result = this.getName().compareTo(other.getName());
+                }
             }
         }
 

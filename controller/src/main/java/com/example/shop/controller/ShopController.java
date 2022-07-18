@@ -1,7 +1,10 @@
 package com.example.shop.controller;
 
+import com.example.demo.dto.in.ShoeFilter;
+import com.example.shop.dto.in.ModelFilter;
 import com.example.shop.dto.in.StockMovement;
 import com.example.shop.dto.out.ApiError;
+import com.example.shop.dto.out.Catalog;
 import com.example.shop.dto.out.Stock;
 import com.example.shop.facade.ShopFacade;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,12 +33,29 @@ public class ShopController {
 
     private final ShopFacade shopFacade;
 
+
+
+    @Operation(summary = "get the shoe catalog")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "successful operation")
+    })
+    @GetMapping(path = "/catalog", produces = "application/json")
+    public ResponseEntity<Catalog> getCatalog(ModelFilter filter, @RequestHeader(defaultValue = "3") Integer version) {
+
+        try {
+            return ResponseEntity.ok(shopFacade.get(version).catalog(filter));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+    }
+
     @Operation(summary = "Checks the availability of shoes stock")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "successful operation")
     })
     @GetMapping(path = "/stock", produces = "application/json")
-    public ResponseEntity<Stock> get(@RequestHeader(defaultValue = "3") Integer version) {
+    public ResponseEntity<Stock> getStock(@RequestHeader(defaultValue = "3") Integer version) {
 
         try {
             return ResponseEntity.ok(shopFacade.get(version).getStock());

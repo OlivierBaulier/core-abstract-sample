@@ -14,6 +14,8 @@ import java.math.BigInteger;
 public class AvailableShoe  implements Comparable<AvailableShoe>{
 
 
+    @Schema( example = "ADIDAS")
+    String name;
     @Schema( example = "BLACK")
     String color;
     @Schema(example = "40")
@@ -27,7 +29,8 @@ public class AvailableShoe  implements Comparable<AvailableShoe>{
 
     }
 
-    public AvailableShoe(String color, BigInteger size, int quantity) {
+    public AvailableShoe(String name,String color, BigInteger size, int quantity) {
+        this.name = name;
         this.color = color;
         this.size = size;
         this.quantity = quantity;
@@ -39,6 +42,9 @@ public class AvailableShoe  implements Comparable<AvailableShoe>{
         result = this.getColor().compareTo(other.getColor());
         if(result == 0){
             result = this.getSize().compareTo(other.getSize());
+            if(result == 0){
+                result = this.getName().compareTo(other.getName());
+            }
         }
         return result;
     }
