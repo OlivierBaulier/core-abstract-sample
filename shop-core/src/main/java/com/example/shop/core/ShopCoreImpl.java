@@ -1,16 +1,12 @@
 package com.example.shop.core;
 
 import com.example.demo.core.Implementation;
-import com.example.demo.dto.in.ShoeFilter;
 import com.example.shop.dto.in.ModelFilter;
 import com.example.shop.dto.in.StockMovement;
 import com.example.shop.dto.out.AvailableShoe;
-import com.example.demo.dto.out.Shoe;
-import com.example.demo.dto.out.Shoes;
 import com.example.shop.dto.out.Catalog;
 import com.example.shop.dto.out.ShoeModel;
 import com.example.shop.dto.out.Stock;
-import com.example.shop.core.entities.FilterEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -54,9 +50,8 @@ public class ShopCoreImpl extends AbstractShopCore {
      *
      * @param movements the movements to apply to stock
      * @return the balance of shoes boxes after all updates
-     * @throws Exception
      */
-    public int stockUpdateMultiLine(StockMovement[] movements) throws Exception {
+    public int stockUpdateMultiLine(StockMovement[] movements) {
         int result = 0;
         // Sort movements to have addition in first
         List<StockMovement> insertionOrder = Arrays.asList(movements);
@@ -94,7 +89,7 @@ public class ShopCoreImpl extends AbstractShopCore {
             }
             result += resultMvt;
         }
-        int newStockCount = this.databaseAdapter.countShoes( new FilterEntity(null,null, null));
+        int newStockCount = this.databaseAdapter.countShoes( new ModelFilter(null,null, null));
         // check if limit is reached
         if(newStockCount > MX_CAPACITY){
             int freePlaces = MX_CAPACITY -(newStockCount-result);
@@ -110,7 +105,7 @@ public class ShopCoreImpl extends AbstractShopCore {
     }
 
     @Override
-    public int stockUpdate(StockMovement[] movements) throws Exception {
+    public int stockUpdate(StockMovement[] movements)  {
         if (movements.length == 1){
             return stockUpdateSingleLine( movements[0]);
         }else{
@@ -122,12 +117,11 @@ public class ShopCoreImpl extends AbstractShopCore {
      *
      * @param movement to apply to stock
      * @return Sum of all movements
-     * @throws Exception
      */
-    int stockUpdateSingleLine(StockMovement movement) throws Exception {
+    int stockUpdateSingleLine(StockMovement movement)  {
         int result = 0;
         if( movement.getQuantity() < 0 ) {
-            int availableShoes = this.databaseAdapter.countShoes( new FilterEntity(  movement.getName(),movement.getColor(), movement.getSize()));
+            int availableShoes = this.databaseAdapter.countShoes( new ModelFilter(  movement.getName(),movement.getColor(), movement.getSize().intValue()));
             int expectedResult = availableShoes +  movement.getQuantity();
             if( expectedResult < 0 ){
                 throw new InsufficientStockException("stockMovement",
@@ -150,7 +144,7 @@ public class ShopCoreImpl extends AbstractShopCore {
                 }
             }
         } else if( movement.getQuantity() > 0 ) {
-            int availableShoes = this.databaseAdapter.countShoes( new FilterEntity(null,null, null));
+            int availableShoes = this.databaseAdapter.countShoes( new ModelFilter(null,null, null));
             int expectedResult = availableShoes + movement.getQuantity();
             if(expectedResult > MX_CAPACITY){
                 throw new CapacityReachedException("stockMovement",

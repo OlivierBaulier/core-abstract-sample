@@ -137,7 +137,7 @@ public class ShopController {
                                           }))
                                           @RequestBody List<@Valid StockMovement> stockMovements) throws Exception {
 
-        StockMovement[] stockMvmts = stockMovements.toArray(new StockMovement[stockMovements.size()]);
+        StockMovement[] stockMvmts = stockMovements.toArray(new StockMovement[0]);
         return ResponseEntity.ok(shopFacade.get(version).stockUpdate(stockMvmts));
 
     }

@@ -1,6 +1,5 @@
 package com.example.shop.database;
 
-import com.example.shop.core.entities.FilterEntity;
 import com.example.shop.dto.in.ModelFilter;
 import com.example.shop.dto.in.StockMovement;
 import com.example.shop.dto.out.AvailableShoe;
@@ -23,16 +22,16 @@ public class DatabaseGateway implements DatabaseAdapter {
 
 
     private static final String INSERT_SQL = "INSERT INTO SHOES_STOCK(model_id) (SELECT model_id FROM shoes_model  WHERE name = :name AND color = :color AND SIZE = :size)";
-    private static final String STOCK_SQL = "SELECT name, color, size, count(S.stock_id) AS quantity FROM SHOES_MODEL M LEFT JOIN shoes_stock S ON S.model_id = M.model_id AND S.outputDate IS NULL "+
+    private static final String STOCK_SQL = "SELECT model_id, name, color, size, count(S.stock_id) AS quantity FROM SHOES_MODEL M LEFT JOIN shoes_stock S ON S.model_id = M.model_id AND S.outputDate IS NULL "+
             " GROUP BY M.name, M.color, M.size";
-    private static final String FILTERED_STOCK_SQL ="SELECT name, color, size, count(S.stock_id) AS quantity FROM SHOES_MODEL M LEFT JOIN shoes_stock S ON S.model_id = M.model_id AND S.outputDate IS NULL " +
+    private static final String FILTERED_STOCK_SQL ="SELECT model_id, name, color, size, count(S.stock_id) AS quantity FROM SHOES_MODEL M LEFT JOIN shoes_stock S ON S.model_id = M.model_id AND S.outputDate IS NULL " +
             "WHERE S.outputDate IS NULL  AND ( :color IS  NULL OR M.color = :color ) AND (:size IS  NULL OR M.size =:size ) AND (:name IS  NULL OR M.name =:name ) " +
             "GROUP BY M.name, M.color, M.SIZE";
 
     private static final String DESTOCK_SQL = "UPDATE SHOES_STOCK set outputDate= NOW() WHERE outputDate IS NULL AND model_id IN ( SELECT model_id FROM SHOES_MODEL M " +
             "WHERE M.color = :color AND SIZE = :size) LIMIT :quantity";
 
-    private static final String CATALOG_SQL = "SELECT name, color, size FROM SHOES_MODEL  WHERE ( :color IS  NULL OR color = :color ) AND (:size IS  NULL OR size =:size )";
+    private static final String CATALOG_SQL = "SELECT model_id, name, color, size FROM SHOES_MODEL  WHERE ( :color IS  NULL OR color = :color ) AND (:size IS  NULL OR size =:size )";
 
     private static final String FILTERED_COUNT_SQL ="SELECT count(stock_id) AS quantity FROM SHOES_MODEL M LEFT JOIN shoes_stock S ON S.model_id = M.model_id AND S.outputDate IS NULL " +
             "WHERE  ( :color IS  NULL OR M.color = :color ) AND (:size IS  NULL OR M.size =:size ) AND (:name IS  NULL OR M.name =:name ) ";
@@ -55,9 +54,9 @@ public class DatabaseGateway implements DatabaseAdapter {
     @Override
     public List<ShoeModel> getCatalog(ModelFilter filter) {
         SqlParameterSource parameters = new MapSqlParameterSource()
-                .addValue("color", (filter != null && filter.getColor().isPresent() )? filter.getColor().get() : null)
-                .addValue("size", (filter != null && filter.getSize().isPresent() )? filter.getSize().get() : null)
-                .addValue("name", (filter != null && filter.getName().isPresent() )? filter.getName().get() : null);
+                .addValue("color", (filter != null )? filter.getColor() : null)
+                .addValue("size", (filter != null  )? filter.getSize() : null)
+                .addValue("name", (filter != null  )? filter.getName() : null);
         return myNamedParameterJdbcTemplate.query(CATALOG_SQL, parameters, new ShoeMapper() );
     }
 
@@ -67,7 +66,7 @@ public class DatabaseGateway implements DatabaseAdapter {
     }
 
     @Override
-    public List<AvailableShoe> getStockWithFilter(FilterEntity filter) {
+    public List<AvailableShoe> getStockWithFilter(ModelFilter filter) {
         SqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("color", filter.getColor())
                 .addValue("size", filter.getSize())
@@ -76,7 +75,7 @@ public class DatabaseGateway implements DatabaseAdapter {
     }
 
     @Override
-    public int countShoes(FilterEntity filter) {
+    public int countShoes(ModelFilter filter) {
         SqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("color", filter.getColor())
                 .addValue("size", filter.getSize())

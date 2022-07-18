@@ -27,6 +27,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,7 @@ public class ApiTest {
 
         public final String tag;
 
-        private Version(String label) {
+        Version(String label) {
             this.tag = label;
         }
     }
@@ -352,14 +353,15 @@ public class ApiTest {
 
     private Catalog catalog(ModelFilter filter  ){
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(this.shopUrl+"catalog");
-        if(filter != null && filter.getSize().isPresent() ) {
-            builder = builder.queryParam("size", filter.getSize().get());
+        if(filter != null && filter.getSize()!= null ) {
+            builder = builder.queryParam("size", filter.getSize());
         }
-        if(filter != null && filter.getColor().isPresent() ) {
-            builder = builder.queryParam("color", filter.getColor().get());
+        if(filter != null && filter.getColor()!= null ) {
+
+            builder = builder.queryParam("color", filter.getColor());
         }
-        if(filter != null && filter.getName().isPresent() ) {
-            builder = builder.queryParam("name", filter.getName().get());
+        if(filter != null && filter.getName()!= null ) {
+            builder = builder.queryParam("name", filter.getName());
         }
         String uriBuilder = builder.build().encode().toUriString();
 
@@ -452,22 +454,23 @@ public class ApiTest {
     ResponseEntity<Integer> restUpdateSock(StockMovement ...stockMvts){
         HttpHeaders headers = new HttpHeaders();
         headers.set("version", Version.SHOP.tag);
-        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-        headers.setAcceptCharset(Arrays.asList(Charset.forName("UTF-8")));
+        List<MediaType> acceptableMediaTypes = new java.util.ArrayList<>();
+        acceptableMediaTypes.add(MediaType.APPLICATION_JSON);
+        headers.setAccept(acceptableMediaTypes);
+        headers.setAcceptCharset(List.of(StandardCharsets.UTF_8));
 
-        HttpEntity<StockMovement[]> request = new HttpEntity<StockMovement[]>(stockMvts, headers);
+        HttpEntity<StockMovement[]> request = new HttpEntity<>(stockMvts, headers);
 
 
         //       RestTemplate restTemplate = new RestTemplate();
         // make an HTTP GET request with headers
-        ResponseEntity<Integer> result = restTemplate.exchange(
+
+        return restTemplate.exchange(
                 shopUrl+"stock",
                 HttpMethod.PATCH,
                 request,
                 Integer.class
         );
-
-        return result;
 
     }
 

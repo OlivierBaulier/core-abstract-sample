@@ -7,13 +7,15 @@ import lombok.Builder;
 import lombok.Value;
 
 import java.math.BigInteger;
+import java.util.Objects;
 
 @Value
 @Builder
 @JsonDeserialize(builder = AvailableShoe.AvailableShoeBuilder.class)
 public class AvailableShoe  implements Comparable<AvailableShoe>{
 
-
+    @Schema( example = "165355")
+    Integer model_id;
     @Schema( example = "ADIDAS")
     String name;
     @Schema( example = "BLACK")
@@ -30,6 +32,11 @@ public class AvailableShoe  implements Comparable<AvailableShoe>{
     }
 
     public AvailableShoe(String name,String color, BigInteger size, int quantity) {
+        this(null, name, color, size, quantity);
+    }
+
+    public AvailableShoe(Integer model_id, String name,String color, BigInteger size, int quantity) {
+        this.model_id = model_id;
         this.name = name;
         this.color = color;
         this.size = size;
@@ -48,4 +55,18 @@ public class AvailableShoe  implements Comparable<AvailableShoe>{
         }
         return result;
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, color, size, quantity);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj.getClass() != this.getClass()){
+            return false;
+        }
+        return this.compareTo((AvailableShoe) obj) == 0;
+    }
+
 }
