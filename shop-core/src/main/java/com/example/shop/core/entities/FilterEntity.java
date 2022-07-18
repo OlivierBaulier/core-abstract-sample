@@ -10,13 +10,16 @@ import java.math.BigInteger;
 public class FilterEntity implements Comparable<FilterEntity>{
 
     @Getter  @Setter
-    private String Color;
+    private String name;
+
+    @Getter  @Setter
+    private String color;
 
     @Getter @Setter
     private BigInteger size;
 
-    public FilterEntity(String color, BigInteger size) {
-        Color = color;
+    public FilterEntity(String name,String color, BigInteger size) {
+        this.color = color;
         this.size = size;
     }
 
@@ -25,6 +28,9 @@ public class FilterEntity implements Comparable<FilterEntity>{
         int result = this.getColor().compareTo(other.getColor());
         if(result == 0){
             result = this.getSize().compareTo(other.getSize());
+            if(result == 0){
+                result = this.getName().compareTo(other.getName());
+            }
         }
         return result;
     }

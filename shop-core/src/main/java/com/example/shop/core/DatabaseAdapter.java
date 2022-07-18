@@ -1,10 +1,12 @@
 package com.example.shop.core;
 
 import com.example.shop.core.entities.FilterEntity;
+import com.example.shop.dto.in.ModelFilter;
 import com.example.shop.dto.in.StockMovement;
 import com.example.demo.dto.in.ShoeFilter;
 import com.example.shop.dto.out.AvailableShoe;
 import com.example.demo.dto.out.Shoe;
+import com.example.shop.dto.out.ShoeModel;
 
 import java.util.List;
 
@@ -19,7 +21,7 @@ public interface DatabaseAdapter {
      * @param filter the filter to apply for the research
      * @return the available shoe model in catalog
      */
-    List<Shoe> getCatalog(ShoeFilter filter);
+    List<ShoeModel> getCatalog(ModelFilter filter);
 
     // to get the current stock state
 
