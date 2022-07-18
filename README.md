@@ -64,7 +64,7 @@ mvn test -DfailIfNoTests=false -Dtest=ApiTest -pl controller -am
 | search V3 | ```curl -X GET "http://localhost:8080/shop/catalog" -H "version: 3" ``` |
 | get stock | ```curl -X GET "http://localhost:8080/shop/stock" -H "version: 3" ``` |
 | update stock single line | ```curl -X PATCH "http://localhost:8080/shop/stock" -H "version: 3" -H "Content-Type: application/json" -d '{ "name": "Shop shoe", size": 40, "color": "BLACK", "quantity": -1 }'``` |
-| update stock multi-lines | ```curl -X PATCH "http://localhost:8080/shop/stock" -H "version: 3" -H "Content-Type: application/json" -d '[{ "Shop shoe", "size": 40, "color": "BLACK", "quantity": -1 },{ "Shop shoe", "size": 39, "color": "BLUE", "quantity": -2 }]'``` |
+| update stock multi-lines | ```curl -X PATCH "http://localhost:8080/shop/stock" -H "version: 3" -H "Content-Type: application/json" -d '[{  "name": "Shop shoe", "size": 40, "color": "BLACK", "quantity": -1 },{ "name": "Shop shoe", "size": 39, "color": "BLUE", "quantity": -2 }]'``` |
 | get stock  | ```curl -X GET "http://localhost:8080/shop/stock" -H "version: 3"``` |
 
 # Version commitées:
