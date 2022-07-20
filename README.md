@@ -93,7 +93,7 @@ NB: Les cas d'erreurs et d'exception sont testés durant les tests unitaires et 
 | ------------------ | --------------------------------------------------------- |
 | 0.1.3 | test unitaires, test d'API, Modèle mono table |
 | 0.1.4 | Test unitaires, test d'API, Modèle sur deux tables, Doc D'API sur Swagger, Découplage avec la version DEMO: plus de contraintes sur les couleurs et le nom du modèle |
-| 0.1.4 | Ajout de la notion de ressources REST. Mise à jour du catalogue et détail du catalogue, ajout des méthodes de gestion du catalogue   |
+| 0.1.5 | Ajout de la notion de ressources REST. Mise à jour du catalogue et détail du catalogue, ajout des méthodes de gestion du catalogue   |
 
 # Améliorations possibles
 - Séparation plus propre entre les DTOs et les entités 
