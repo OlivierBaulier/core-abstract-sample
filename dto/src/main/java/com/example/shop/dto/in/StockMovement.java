@@ -8,6 +8,7 @@ import lombok.Value;
 
 
 import java.math.BigInteger;
+import java.util.Comparator;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -20,7 +21,6 @@ import javax.validation.constraints.NotNull;
 @Builder
 public class StockMovement implements  Comparable<StockMovement>{
 
-    @NotNull(message = "name shouldn't be null")
     @Schema(example = "Shop shoe")
     @Getter String name;
     @NotNull(message = "size shouldn't be null")
@@ -50,4 +50,5 @@ public class StockMovement implements  Comparable<StockMovement>{
 
         return result;
     }
+
 }

@@ -1,6 +1,5 @@
 package com.example.shop.dto.out;
 
-import com.example.demo.dto.out.Shoe;
 import com.example.shop.dto.out.ShoeModel.ShoeModelBuilder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -12,6 +11,10 @@ import lombok.Value;
 @Builder
 @JsonDeserialize(builder = ShoeModelBuilder.class)
 public class ShoeModel implements Comparable<ShoeModel>{
+
+
+    @Schema(example = "Shop shoe")
+    Integer     model_id;
     @Schema(example = "Shop shoe")
     String     name;
     @Schema(example = "39")
@@ -36,4 +39,14 @@ public class ShoeModel implements Comparable<ShoeModel>{
         }
         return result;
     }
+
+    @Override
+    public boolean equals(Object other){
+        if(other.getClass() != this.getClass()) {
+            return false;
+        } else {
+            return (this.compareTo((ShoeModel)other) == 0);
+        }
+    }
+
 }

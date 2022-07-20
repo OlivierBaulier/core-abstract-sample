@@ -3,7 +3,11 @@ package com.example.demo.controller;
 import com.example.demo.dto.in.ShoeFilter;
 import com.example.demo.dto.out.Shoe;
 import com.example.demo.dto.out.Shoes;
+import com.example.shop.core.CapacityReachedException;
+import com.example.shop.core.InsufficientStockException;
+import com.example.shop.core.NotFoundException;
 import com.example.shop.dto.in.ModelFilter;
+import com.example.shop.dto.in.RestStockMovement;
 import com.example.shop.dto.in.StockMovement;
 import com.example.shop.dto.out.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,10 +30,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigInteger;
-import java.nio.charset.Charset;
-import java.util.Arrays;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -47,7 +50,7 @@ public class ApiTest {
 
         public final String tag;
 
-        private Version(String label) {
+        Version(String label) {
             this.tag = label;
         }
     }
@@ -211,6 +214,17 @@ public class ApiTest {
                 catalog.getShoes().stream().sorted().collect(Collectors.toList()));
     }
 
+    @Test public void givenShoesShop_whenGetModelThatDoesNotExist_thenTrowsError() throws JsonProcessingException {
+
+        HttpClientErrorException exception = (HttpClientErrorException)assertThrows(Exception.class, () -> {
+            ShoeModel model =  this.getShoeModel(-1);
+        });
+        ApiError error = new ObjectMapper().readValue(exception.getResponseBodyAsString(), ApiError.class);
+        Assert.assertEquals("Not found exception expected",
+                NotFoundException.class.getName() , error.getSubErrors().get("model_id").getCode());
+
+    }
+
     @Test
     public void givenShoesShop_whenGetCatalogWithFilter_thenSuccess()
     {
@@ -240,57 +254,103 @@ public class ApiTest {
     @Test
     public void givenShoesShop_whenUpdateStockWithoutColor_thenThrowInvalidColor() throws JsonProcessingException {
         HttpClientErrorException exception = (HttpClientErrorException)assertThrows(Exception.class, () -> {
-            int movementBalance =  updateSock(
+            int movementBalance =  oldUpdateSock(
                     StockMovement.builder().name("Shop shoe").size(BigInteger.valueOf(40L)).quantity(10).build()
             );
         });
 
         Assert.assertEquals("Check HTTP 400 Error", 400, exception.getRawStatusCode());
         ApiError error = new ObjectMapper().readValue(exception.getResponseBodyAsString(), ApiError.class);
-        Assert.assertEquals("Check API ERROR", "color shouldn't be null", error.getSubErrors().get("patch.stockMovements[0].color").getMessage());
+        Assert.assertEquals("Constraint Not NULL exception expected",
+                javax.validation.constraints.NotNull.class.getName(),
+                error.getSubErrors().get("patch.stockMovements[0].color").getCode());
     }
 
     @Test
     public void givenInitialStock_whenAddedShoesExceedCapacity_thenThrowsCapacityReached() throws JsonProcessingException {
         HttpClientErrorException exception = (HttpClientErrorException)assertThrows(Exception.class, () -> {
-            int movementBalance =  updateSock(
+            int movementBalance =  oldUpdateSock(
                     StockMovement.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(40L)).quantity(30).build()
             );
         });
 
         Assert.assertEquals("Check HTTP 400 Error", 400, exception.getRawStatusCode());
         ApiError error = new ObjectMapper().readValue(exception.getResponseBodyAsString(), ApiError.class);
-        Assert.assertTrue("Check API ERROR"
-                ,error.getSubErrors().get("stockMovement").getMessage().startsWith("The quantity reaches the capacity limit of the shop : ")
-                );
+        Assert.assertEquals("Check API ERROR",
+                CapacityReachedException.class.getName()
+                , error.getSubErrors().get("stockMovement").getCode());
     }
 
     @Test
     public void givenInitialStock_whenAddedAddMultiLineStockOutsideCapacity_thenThrowsCapacityReached() throws JsonProcessingException {
         HttpClientErrorException exception = (HttpClientErrorException)assertThrows(Exception.class, () -> {
-            int movementBalance =  updateSock(
+            int movementBalance =  oldUpdateSock(
                     StockMovement.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(40L)).quantity(-30).build()
             );
         });
 
         Assert.assertEquals("Check HTTP 400 Error", 400, exception.getRawStatusCode());
         ApiError error = new ObjectMapper().readValue(exception.getResponseBodyAsString(), ApiError.class);
-        Assert.assertTrue("Check API ERROR"
-                , error.getSubErrors().get("stockMovement").getMessage().startsWith("Not enough stock :"));
+        Assert.assertEquals("Check API ERROR",
+                InsufficientStockException.class.getName()
+                , error.getSubErrors().get("stockMovement").getCode());
     }
 
     @Test
+    // reset database after this test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void givenShoesShop_whentestNewRestAPi_thenSuccess() {
+        // start by get catalog
+        Catalog catalog = this.catalog();
+
+        // Add 2 shoe boxes and remove 1 for all model in catalog
+        List<RestStockMovement> restMovements = catalog.getShoes().stream().map((model)->(
+            RestStockMovement.builder()
+                    .model_id(model.getModel_id())
+                    .quantity(2).build()
+        ) ).collect(Collectors.toList());
+
+        int result = updateSock(restMovements.toArray(new RestStockMovement[0]));
+        Assert.assertEquals("Check the number of shoes boxes added",
+                2*catalog.getShoes().size(), result);
+
+        // then remove 1 box for each model
+        restMovements = catalog.getShoes().stream().map((model)->(
+                RestStockMovement.builder()
+                        .model_id(model.getModel_id())
+                        .quantity(-1).build()
+        ) ).collect(Collectors.toList());
+
+        result = updateSock(restMovements.toArray(new RestStockMovement[0]));
+        Assert.assertEquals("Check the number of shoes boxes added",
+                -1*catalog.getShoes().size(), result);
+
+        // Add a new model
+        ShoeModel expectedModel = ShoeModel.builder().name("ADIDAS")
+                .color("GREEN")
+                .size(43).build();
+
+        int model_id = this.newShoeModel(expectedModel);
+
+        ShoeModel model = this.getShoeModel(model_id);
+        Assert.assertEquals("INserted Model must be match with excepted", expectedModel, model);
+
+    }
+
+
+
+        @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void givenShoesShop_whenUpdateStock_thenSuccess()
     {
         // Add 10 Boxes to stock
-        Integer boxMovement = updateSock(
+        Integer boxMovement = oldUpdateSock(
                 StockMovement.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(40L)).quantity(10).build()
         );
         Assert.assertEquals("Check BoxMovement", Integer.valueOf(10), boxMovement);
 
         // remove 5 boxes from stock
-        boxMovement = updateSock(
+        boxMovement = oldUpdateSock(
                 StockMovement.builder().name("Shop shoe").color("BLACK").size(BigInteger.valueOf(40L)).quantity(-15).build()
         );
         Assert.assertEquals("Check the number of stocked shoes", Integer.valueOf(-15), boxMovement);
@@ -311,7 +371,7 @@ public class ApiTest {
                 stockResult.getShoes().stream().sorted().collect(Collectors.toList()));
 
         // Create a new model by inserting a new model in stock
-        boxMovement = updateSock(
+        boxMovement = oldUpdateSock(
                 StockMovement.builder().name("Shop shoe").color("GREEN").size(BigInteger.valueOf(45L)).quantity(1).build()
                 );
         Assert.assertEquals("1: means new model is inserted", Integer.valueOf(1), boxMovement);
@@ -350,16 +410,42 @@ public class ApiTest {
         return this.catalog(null);
     }
 
+
+    private ShoeModel getShoeModel(int model_id  ){
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(this.shopUrl+"catalog/"+model_id);
+
+        String uriBuilder = builder.build().encode().toUriString();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("version", Version.SHOP.tag);
+
+        HttpEntity<Catalog> request = new HttpEntity<>(headers);
+
+        // make an HTTP GET request with headers
+        ResponseEntity<ShoeModel> result = restTemplate.exchange(
+                uriBuilder,
+                HttpMethod.GET,
+                request,
+                ShoeModel.class
+        );
+
+        //Verify http code
+        Assert.assertEquals("Http code",200,result.getStatusCode().value());
+
+        return result.getBody();
+    }
+
     private Catalog catalog(ModelFilter filter  ){
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(this.shopUrl+"catalog");
-        if(filter != null && filter.getSize().isPresent() ) {
-            builder = builder.queryParam("size", filter.getSize().get());
+        if(filter != null && filter.getSize()!= null ) {
+            builder = builder.queryParam("size", filter.getSize());
         }
-        if(filter != null && filter.getColor().isPresent() ) {
-            builder = builder.queryParam("color", filter.getColor().get());
+        if(filter != null && filter.getColor()!= null ) {
+
+            builder = builder.queryParam("color", filter.getColor());
         }
-        if(filter != null && filter.getName().isPresent() ) {
-            builder = builder.queryParam("name", filter.getName().get());
+        if(filter != null && filter.getName()!= null ) {
+            builder = builder.queryParam("name", filter.getName());
         }
         String uriBuilder = builder.build().encode().toUriString();
 
@@ -449,29 +535,65 @@ public class ApiTest {
         return result.getBody();
     }
 
-    ResponseEntity<Integer> restUpdateSock(StockMovement ...stockMvts){
+
+    Integer newShoeModel(ShoeModel model){
         HttpHeaders headers = new HttpHeaders();
         headers.set("version", Version.SHOP.tag);
-        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-        headers.setAcceptCharset(Arrays.asList(Charset.forName("UTF-8")));
+        List<MediaType> acceptableMediaTypes = new java.util.ArrayList<>();
+        acceptableMediaTypes.add(MediaType.APPLICATION_JSON);
+        headers.setAccept(acceptableMediaTypes);
+        headers.setAcceptCharset(List.of(StandardCharsets.UTF_8));
 
-        HttpEntity<StockMovement[]> request = new HttpEntity<StockMovement[]>(stockMvts, headers);
+        HttpEntity<ShoeModel> request = new HttpEntity<>(model, headers);
+
+
+        // Call the REST API
+
+        ResponseEntity<Integer> result = restTemplate.exchange(
+                shopUrl+"/catalog",
+                HttpMethod.PUT,
+                request,
+                Integer.class
+        );
+        //
+        //Verify http code
+        Assert.assertEquals("Http code",200,result.getStatusCode().value());
+        return result.getBody();
+    }
+
+    ResponseEntity<Integer> oldRestUpdateSock(StockMovement ...stockMvts){
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("version", Version.SHOP.tag);
+        List<MediaType> acceptableMediaTypes = new java.util.ArrayList<>();
+        acceptableMediaTypes.add(MediaType.APPLICATION_JSON);
+        headers.setAccept(acceptableMediaTypes);
+        headers.setAcceptCharset(List.of(StandardCharsets.UTF_8));
+
+        HttpEntity<StockMovement[]> request = new HttpEntity<>(stockMvts, headers);
 
 
         //       RestTemplate restTemplate = new RestTemplate();
         // make an HTTP GET request with headers
-        ResponseEntity<Integer> result = restTemplate.exchange(
+
+        return restTemplate.exchange(
                 shopUrl+"stock",
                 HttpMethod.PATCH,
                 request,
                 Integer.class
         );
 
-        return result;
-
     }
 
-    Integer updateSock(StockMovement ...stockMvts){
+    Integer oldUpdateSock(StockMovement ...stockMvts){
+        ResponseEntity<Integer> result = this.oldRestUpdateSock( stockMvts);
+
+        //Verify http result
+        Assert.assertEquals("Http code",200,result.getStatusCode().value());
+
+        return result.getBody();
+    }
+
+    Integer updateSock(RestStockMovement ...stockMvts){
         ResponseEntity<Integer> result = this.restUpdateSock( stockMvts);
 
         //Verify http result
@@ -479,5 +601,29 @@ public class ApiTest {
 
         return result.getBody();
     }
+
+    ResponseEntity<Integer> restUpdateSock(RestStockMovement...stockMvts){
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("version", Version.SHOP.tag);
+        List<MediaType> acceptableMediaTypes = new java.util.ArrayList<>();
+        acceptableMediaTypes.add(MediaType.APPLICATION_JSON);
+        headers.setAccept(acceptableMediaTypes);
+        headers.setAcceptCharset(List.of(StandardCharsets.UTF_8));
+
+        HttpEntity<RestStockMovement[]> request = new HttpEntity<>(stockMvts, headers);
+
+
+        //       RestTemplate restTemplate = new RestTemplate();
+        // make an HTTP GET request with headers
+
+        return restTemplate.exchange(
+                shopUrl+"rest/stock",
+                HttpMethod.PATCH,
+                request,
+                Integer.class
+        );
+
+    }
+
 
 }
