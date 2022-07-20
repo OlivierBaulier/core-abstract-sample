@@ -13,10 +13,11 @@ public class ShoeMapper implements RowMapper<ShoeModel> {
 
     @SneakyThrows
     @Override
-    public ShoeModel mapRow(ResultSet rs, int rowNum) throws SQLException {
+    public ShoeModel mapRow(ResultSet rs, int rowNum)  {
         ShoeFilter.Color color ;
 
         return  ShoeModel.builder()
+                .model_id(rs.getInt("model_id"))
                 .name(rs.getString("name"))
                 .color(rs.getString("color"))
                 .size(rs.getInt("size")).build();

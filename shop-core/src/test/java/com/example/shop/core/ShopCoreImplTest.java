@@ -8,6 +8,7 @@ import com.example.shop.dto.out.ShoeModel;
 import com.example.shop.dto.out.Stock;
 import com.example.demo.facade.ShoeFacade;
 import com.example.shop.facade.ShopFacade;
+import org.assertj.core.util.Lists;
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +28,9 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -356,7 +360,7 @@ class ShopCoreImplTest {
 
         // test get Stock
         int requestResult = shopFacade.get(3).stockUpdate(
-                new StockMovement[]{ shoesRequest }
+                Lists.list( shoesRequest )
         );
 
         verify(this.databaseAdapter, times(1)).countShoes(any());
@@ -387,7 +391,7 @@ class ShopCoreImplTest {
      * @param currentStock initial stock for emulation
      * @param movements to apply to stock
      * @return the number of shoe boxes moved
-     * @throws Exception
+     * @throws Exception CapacityReachedException
      */
     private int updateStock(Stock currentStock, StockMovement ...movements) throws Exception {
         int expectedResult = 0;
@@ -415,7 +419,7 @@ class ShopCoreImplTest {
                 .thenReturn(initialCount + expectedResult);
 
         // performs all movements in single call
-        int requestResult = this.shopFacade.get(3).stockUpdate(movements);
+        int requestResult = this.shopFacade.get(3).stockUpdate(List.of(movements));
 
         verify(this.databaseAdapter, times(1)).countShoes(any());
         verify(this.databaseAdapter, times(addedMvtCount)).stock(any());
@@ -432,7 +436,7 @@ class ShopCoreImplTest {
      * @param currentStock  simulated initial stock
      * @param shoesAddition Shoes movement to add to stock
      * @return balance of the moved shoes boxes
-     * @throws Exception
+     * @throws Exception CapacityReachedException
      */
     private int AddShoes(Stock currentStock, StockMovement shoesAddition) throws Exception {
 
@@ -447,7 +451,7 @@ class ShopCoreImplTest {
 
         // test get Stock
         int requestResult = this.shopFacade.get(3).stockUpdate(
-                new StockMovement[] {shoesAddition}
+                List.of(shoesAddition)
         );
 
         verify(this.databaseAdapter, times(1)).countShoes(any());
@@ -459,4 +463,16 @@ class ShopCoreImplTest {
         return requestResult;
     }
 
+    class ShoeModelRepo {
+        Map<Integer, ShoeModel>  repo;
+        ShoeModelRepo( ShoeModel[] stock)
+        {
+            this.repo = List.of(stock).stream()
+                    .collect(Collectors.toMap(ShoeModel::getModel_id, Function.identity()));
+        }
+        ShoeModel getModelById(int model_id){
+            return this.repo.get(model_id);
+        }
+
+    }
 }
