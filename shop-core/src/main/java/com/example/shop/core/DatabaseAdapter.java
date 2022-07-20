@@ -1,11 +1,8 @@
 package com.example.shop.core;
 
-import com.example.shop.core.entities.FilterEntity;
 import com.example.shop.dto.in.ModelFilter;
 import com.example.shop.dto.in.StockMovement;
-import com.example.demo.dto.in.ShoeFilter;
 import com.example.shop.dto.out.AvailableShoe;
-import com.example.demo.dto.out.Shoe;
 import com.example.shop.dto.out.ShoeModel;
 
 import java.util.List;
@@ -37,14 +34,14 @@ public interface DatabaseAdapter {
      * @param filter the filter to apply
      * @return the stock descriptor of available shoes.
      */
-    List<AvailableShoe> getStockWithFilter(FilterEntity filter);
+    List<AvailableShoe> getStockWithFilter(ModelFilter filter);
 
     /** to get the number of available shoe boxes with filter
      *
      * @param filter the filter to apply
      * @return the number of available she boxes
      */
-    int countShoes(FilterEntity filter);
+    int countShoes(ModelFilter filter);
 
     /** to perform an inflow movement in the shop stock
      *
@@ -59,4 +56,22 @@ public interface DatabaseAdapter {
      * @return the number of shoes boxes effectively moved
      */
     int destock(StockMovement movement);
+
+    /**
+     * Add new shoe model in shop catalog if not already exist
+     * @param size of the color of the shoe model
+     * @param name of the color of the shoe model
+     * @param color of the color of the shoe model
+     * @return return the ID of the corresponding shoeModel
+     */
+    int addModelIfNotExist(String name, String color, int size);
+
+
+    /** get Shoe Model by its model_id
+     *
+     * @param model_id the identifier of Shoe Model
+     * @return the wanted Shoe Model or throw NotFountException exception
+     */
+    ShoeModel getShoeModelById(int model_id);
+
 }
