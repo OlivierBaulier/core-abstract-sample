@@ -1,4 +1,4 @@
-# Approche utilisée pour la réalisation de l'exercice:
+# Approche utilisée pour la réalisation de l'exercice :
 
 A été choisi de partir de l'application de démonstration pour la faire évoluer par itérations successives vers la cible. Cette cible devant s'approcher d'une notion de MVP tout en gardant une compatibilité avec l'origine.
 
@@ -10,10 +10,10 @@ Cette stratégie est basée sur deux niveaux de tests.
   Un soin particulier a été pris pour rendre les tests le plus simples et lisible, le but avoué étant de faciliter la maintenance et leurs adoptions.
   Chaque cas d'erreur est testé sur les deux niveaux, ce qui implique une gestion d'erreurs commune entre les APIs.
 
-###Test BDD du code métier:
+###Test BDD du code métier :
 Le code métier est testé en simulant la couche de persistance par des MOCKs
 - les éléments du langage **Gherkins** (**GIVEN, WHEN, THEN**) ont été repris pour l'écriture des tests.
-- les vérification sont faites directements sur les objects métiers.
+- les vérifications sont faites directement sur les objets métiers.
 
 ```shell
 mvn test -DfailIfNoTests=false -Dtest=ShopCoreImplTest -pl shop-core -am
@@ -22,7 +22,7 @@ mvn test -DfailIfNoTests=false -Dtest=ShopCoreImplTest -pl shop-core -am
 ###Test d'intégration sur l'API
 - Les tests d'intégration sont réalisés sur toutes la couches entre l'API REST et la base de données sans aucune simulation (sans MOCK).
 - Ce test a été directement packagé dans la version de test du projet.
-- Comme pour le test du code métier le langage gherkins a été repris.
+- Comme pour le test du code métier le langage Gherkins a été repris.
 - La librairie HttpClient d'Apache a été utilisé pour tester la méthode **PATCH**
 - Les méthodes **equals** ont été ajoutés sur les DTOs, pour permettre de réaliser les tests directement sur les DTOs.
 
@@ -32,8 +32,9 @@ mvn test -DfailIfNoTests=false -Dtest=ApiTest -pl controller -am
 
 
 ## Choix de la persistance
-- La base de données choisie est HSQlDB en mode embarquée.
-- Le modèle choisi est basé sur une approche additive, par ajout d'enregistrement et ajout de colonnes sans destruction d'information, ce qui permettra à terme de gérer ***l'historique des mouvements***, les ***retours de stock***, etc...
+- La base de données choisie est HSQLDB en mode embarquée.
+- Le modèle choisi est basé sur une approche additive, par ajout d'enregistrement et ajout de colonnes sans destruction d'information, ce qui permettra à terme de gérer ***l'historique des mouvements***, les ***retours de stock***.
+- Le choix mode de persistance additive permet d'introduire la notion d'événement, ici inputDate et outputDate permet d'enregistrer les dates des événements d'entrée et de sortie du stock.
 - Le binding bidirectionnel est utilisé pour éviter les problèmes de **SQL injection**.
 
 
@@ -49,11 +50,11 @@ mvn test -DfailIfNoTests=false -Dtest=ApiTest -pl controller -am
 - Dans le cas d'un update de Stock sur plusieurs lignes, les entrées sont traitées en priorité.
 
 # Itérations suivantes :
-- Séparation du modèle du catalogue de celui du stock (modèle sur deux table), pour préparer le cas échéant un découpage en micron service. Ce qui motive ce découpage est le fait que les gouvernances du catalogue et du stock sont différentes dans un réseau de magasin, car le stock est géré par magasin, tandis que le catalogue est partagé dans le réseau.
+- Séparation du modèle du catalogue de celui du stock (modèle sur deux tables), pour préparer le cas échéant un découpage en micron service. Ce qui motive ce découpage est le fait que les gouvernances du catalogue et du stock sont différentes dans un réseau de magasin, car le stock est géré par magasin, tandis que le catalogue est partagé dans le réseau.
 - Séparation des deux API Stock et Catalogue, ce qui prépare le découpage en micro-service.
 - Ajout des méthodes assurant la gestion du catalogue.
-- Renforcement de la notion de ressource avec leur identifiant, ce qui renforce le future découpage en micro-service.
-- Documenation des l'API avec Swagger par annotaion du code source.
+- Renforcement de la notion de ressource avec leur identifiant, ce qui renforce le futur découpage en micro-service.
+- Documentation des APIs avec Swagger par annotation du code source.
 
 ## test
 
@@ -86,19 +87,26 @@ mvn test -DfailIfNoTests=false -Dtest=ApiTest -pl controller -am
 | update stock multi-lines en mode REST FULL| ```curl -X PATCH "http://localhost:8080/shop/rest/stock" -H "version: 3" -H "Content-Type: application/json" -d '[{ "model_id" : 0, "quantity": -1 },{ "model_id" : 1, "quantity": 2 }]'``` |
 
 
-NB: Les cas d'erreurs et d'exception sont testés durant les tests unitaires et les tests d'intégration, pour cette raison, durant le build les stacks d'exception apparaissent.
+NB : Les cas d'erreurs et d'exception sont testés durant les tests unitaires et les tests d'intégration, pour cette raison, durant le build les stacks d'exception apparaissent.
 
-# Version commitées:
+# Version commitées :
 
 | Version            | Command  |
 | ------------------ | --------------------------------------------------------- |
 | 0.1.3 | test unitaires, test d'API, Modèle mono table |
 | 0.1.4 | Test unitaires, test d'API, Modèle sur deux tables, Doc D'API sur Swagger, Découplage avec la version DEMO: plus de contraintes sur les couleurs et le nom du modèle |
-| 0.1.5 | Ajout de la notion de ressources REST. Mise à jour du catalogue et détail du catalogue, ajout des méthodes de gestion du catalogue   |
+| 0.1.5.2 | Ajout de la notion de ressources REST. Mise à jour du catalogue et détail du catalogue, ajout des méthodes de gestion du catalogue   |
 
 # Améliorations possibles
 - Séparation plus propre entre les DTOs et les entités
 - Déploiement de l'application en conteneur Docker en vue d'une intégration dans un pipeline CI/CD
-- Utilisation d'un ORM comme Hibernate
+- Utilisation d'un ORM comme Hibernate.
 - Observabilité : Utiliser l'agent APM d'**ElasticsSearch** pour assurer la surveillance de la qualité de service avec une approche métier [APM Agent for JAVA](https://www.elastic.co/guide/en/apm/agent/java/current/index.html)]
-- Découpage en micro-service, un micro-service pour la gestion des stocks et un autre pour la gestion des stocks, chacun ayant sa propre gouvernance de ses données, niveau magasin, niveau réseau.
+- Découpage en micro-service, un micro-service pour la gestion des stocks et un autre pour la gestion des stocks, chacun ayant sa propre gouvernance de ses données, niveau magasin, niveau réseau. 
+
+La gestion des stocks est un élément à haute valeur ajouté pour un magasin, c'est ce qui assure d'avoir les bons produits au bon moment tout en optimisant la capacité de stockage en flux tendu.
+Par ailleurs beaucoup de services sont interconnectés avec le service de stock, ce qui en fait le noyau central de la gestion d'un magasin, avec des workflows complexes dont les événements arrivent de manière asynchrone les uns des autres (ventes, commandes, livraisons, etc..).
+L'architecture la plus adaptée pour répondre à ses contraintes de découplage entre services et temporelles est l'architecture orientée événement.
+Cette évolution peut être introduite à l'aide d'un bus asynchrone comme Kafka qui est réputé pour gérer des flux d'événements temps réel très importants.
+Le découpage en domaine avec l'approche DDD, doit permettre de guider vers une architecture pérenne dans le temps.
+
